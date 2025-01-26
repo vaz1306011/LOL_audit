@@ -32,7 +32,9 @@ class LolAudit:
                     estimated_time = round(status["estimatedQueueTime"])
                     etM, etS = divmod(estimated_time, 60)
 
-                    output(f"列隊中 {tiqM:02d}:{tiqS:02d}/{etM:02d}:{etS:02d}")
+                    output(
+                        f"列隊中 {tiqM:02d}:{tiqS:02d}\n預計時間：{etM:02d}:{etS:02d}"
+                    )
 
                     if self.__auto_rematch and time_in_queue > estimated_time:
                         print("等待時間過長")

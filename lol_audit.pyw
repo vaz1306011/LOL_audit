@@ -14,7 +14,7 @@ class LolAuditUi:
     def __init_ui(self):
         self.root = tk.Tk()
         self.root.title("League of Legends")
-        self.root.geometry("300x150+800+400")
+        self.root.geometry("300x170+800+400")
         self.root.resizable(False, False)
         self.root.attributes("-topmost", True)
 
