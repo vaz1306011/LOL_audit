@@ -1,5 +1,3 @@
-import time
-
 import requests
 
 import auth
@@ -9,11 +7,20 @@ requests.packages.urllib3.disable_warnings()
 
 class LeagueClient:
     def __init__(self):
-        self.auth = auth.get_auth_string()
-        self.client = requests.Session()
-        self.client.verify = False
-        self.client.headers.update({"Accept": "application/json"})
-        self.client.timeout = 10
+        self.__auth = auth.get_auth_string()
+        self.__client = requests.Session()
+        self.__client.verify = False
+        self.__client.headers.update({"Accept": "application/json"})
+        self.__client.timeout = 10
+
+    def __get_request(self, url: str) -> requests.Response:
+        return self.__client.get(f"{self.__auth}/{url}").json()
+
+    def __post_request(self, url: str) -> None:
+        self.__client.post(f"{self.__auth}/{url}")
+
+    def __delete_request(self, url: str) -> None:
+        self.__client.delete(f"{self.__auth}/{url}")
 
     def get_phase(self) -> requests.Response:
         """
@@ -22,28 +29,29 @@ class LeagueClient:
         ReadyCheck
         ChampSelect
         """
-        url = f"{self.auth}/lol-gameflow/v1/gameflow-phase"
-        response = self.client.get(url)
-        return response.json()
-
-    def start_matchmaking(self) -> None:
-        url = f"{self.auth}/lol-lobby/v2/lobby/matchmaking/search"
-        self.client.post(url)
+        url = "lol-gameflow/v1/gameflow-phase"
+        return self.__get_request(url)
 
     def get_matchmaking_info(self) -> requests.Response:
-        url = f"{self.auth}/lol-matchmaking/v1/search"
-        response = self.client.get(url)
-        return response.json()
+        url = "lol-matchmaking/v1/search"
+        return self.__get_request(url)
+
+    def get_team_info(self) -> requests.Response:
+        url = "lol-matchmaking/v1/team"
+        return self.__get_request(url)
+
+    def start_matchmaking(self) -> None:
+        url = "lol-lobby/v2/lobby/matchmaking/search"
+        self.__post_request(url)
 
     def quit_matchmaking(self) -> None:
-        url = f"{self.auth}/lol-lobby/v2/lobby/matchmaking/search"
-        self.client.delete(url)
+        url = "lol-lobby/v2/lobby/matchmaking/search"
+        self.__delete_request(url)
 
     def accept_match(self) -> None:
-        url = f"{self.auth}/lol-matchmaking/v1/ready-check/accept"
-        self.client.post(url)
+        url = "lol-matchmaking/v1/ready-check/accept"
+        self.__post_request(url)
 
-    def decline_match(self) -> requests.Response:
-        url = f"{self.auth}/lol-matchmaking/v1/ready-check/decline"
-        response = self.client.post(url)
-        return response.json()
+    def decline_match(self) -> None:
+        url = "lol-matchmaking/v1/ready-check/decline"
+        self.__post_request(url)
