@@ -9,7 +9,7 @@ class LolAuditUi:
         self.lol_audit = LolAudit()
         threading.Thread(target=self.__init_ui).start()
 
-        self.lol_audit.start_main(self.__update_label)
+        self.lol_audit.start_main(self.__update)
 
     def __init_ui(self):
         self.root = tk.Tk()
@@ -61,7 +61,13 @@ class LolAuditUi:
         self.root.mainloop()
         self.lol_audit.stop_main()
 
-    def __update_label(self, text):
+    def __update(self, text: str):
+        if text == "未在列隊":
+            self.match_button.config(text="開始列隊", state="normal")
+        elif text.startswith("列隊中"):
+            self.match_button.config(text="停止列隊", state="normal")
+        else:
+            self.match_button.config(state="disabled")
         self.label.config(text=text)
 
     def __start_matchmaking(self):
@@ -81,10 +87,8 @@ class LolAuditUi:
 
     def __toggle_matchmaking_button(self):
         if self.match_button.cget("text") == "開始列隊":
-            self.match_button.config(text="停止列隊")
             self.__start_matchmaking()
         else:
-            self.match_button.config(text="開始列隊")
             self.__stop_matchmaking()
 
     def __toggle_auto_accept(self):
