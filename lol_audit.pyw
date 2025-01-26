@@ -19,9 +19,8 @@ class LolAuditUi:
         self.root.attributes("-topmost", True)
 
         # 設定接受對戰延遲時間
-        self.accept_delay_value = tk.IntVar()
-        self.accept_delay_value.set(self.lol_audit.get_accept_delay())
-        self.accept_delay_value.trace_add("write", self.lol_audit.set_accept_delay)
+        self.accept_delay_value = tk.IntVar(value=self.lol_audit.get_accept_delay())
+        self.accept_delay_value.trace_add("write", self.__set_accept_delay)
         self.accept_delay = tk.Entry(
             self.root, width=5, justify="center", textvariable=self.accept_delay_value
         )
@@ -29,7 +28,7 @@ class LolAuditUi:
 
         # 開始列隊按鈕
         self.match_button = tk.Button(
-            self.root, text="開始列隊", command=self.__toggle_matchmaking
+            self.root, text="開始列隊", command=self.__toggle_matchmaking_button
         )
         self.match_button.pack(pady=5)
 
@@ -38,20 +37,24 @@ class LolAuditUi:
         self.label.pack(pady=20)
 
         # 自動接受對戰
-        self.auto_accept_status = tk.IntVar()
-        self.auto_accept_status.set(self.lol_audit.get_auto_accept())
-        self.auto_accept_status.trace_add("write", self.__toggle_auto_accept)
+        self.auto_accept_status = tk.BooleanVar(value=self.lol_audit.get_auto_accept())
         self.auto_accept_checkbutton = tk.Checkbutton(
-            self.root, text="自動接受", variable=self.auto_accept_status
+            self.root,
+            text="自動接受",
+            variable=self.auto_accept_status,
+            command=self.__toggle_auto_accept,
         )
         self.auto_accept_checkbutton.place(x=220, y=10)  # x=250, y=10 位置為右上角
 
         # 超時自動重排
-        self.auto_rematch_status = tk.IntVar()
-        self.auto_rematch_status.set(self.lol_audit.get_auto_rematch())
-        self.auto_rematch_status.trace_add("write", self.__toggle_auto_rematch)
+        self.auto_rematch_status = tk.BooleanVar(
+            value=self.lol_audit.get_auto_rematch()
+        )
         self.auto_rematch_checkbutton = tk.Checkbutton(
-            self.root, text="超時重排", variable=self.auto_rematch_status
+            self.root,
+            text="超時重排",
+            variable=self.auto_rematch_status,
+            command=self.__toggle_auto_rematch,
         )
         self.auto_rematch_checkbutton.place(x=220, y=40)
 
@@ -67,7 +70,16 @@ class LolAuditUi:
     def __stop_matchmaking(self):
         self.lol_audit.stop_matchmaking()
 
-    def __toggle_matchmaking(self):
+    def __set_accept_delay(self, *args):
+        try:
+            delay = self.accept_delay_value.get()
+        except tk.TclError:
+            delay = 0
+
+        print(delay)
+        self.lol_audit.set_accept_delay(delay)
+
+    def __toggle_matchmaking_button(self):
         if self.match_button.cget("text") == "開始列隊":
             self.match_button.config(text="停止列隊")
             self.__start_matchmaking()
@@ -75,10 +87,10 @@ class LolAuditUi:
             self.match_button.config(text="開始列隊")
             self.__stop_matchmaking()
 
-    def __toggle_auto_accept(self, *arg):
+    def __toggle_auto_accept(self):
         self.lol_audit.set_auto_accept(self.auto_accept_status.get())
 
-    def __toggle_auto_rematch(self, *arg):
+    def __toggle_auto_rematch(self):
         self.lol_audit.set_auto_rematch(self.auto_rematch_status.get())
 
 
