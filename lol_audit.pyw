@@ -6,10 +6,9 @@ from lol_audit import LolAudit
 
 class LolAuditUi:
     def __init__(self):
-        self.lol_audit = LolAudit()
+        self.lol_audit = LolAudit(self.__update)
         threading.Thread(target=self.__init_ui).start()
-
-        self.lol_audit.start_main(self.__update)
+        self.lol_audit.start_main()
 
     def __init_ui(self):
         self.root = tk.Tk()

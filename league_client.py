@@ -13,8 +13,18 @@ class LeagueClient:
         self.__client.headers.update({"Accept": "application/json"})
         self.__client.timeout = 10
 
+    def check_auth(self) -> bool:
+        return self.__auth is not None
+
+    def refresh_auth(self) -> None:
+        self.__auth = auth.get_auth_string()
+
     def __get_request(self, url: str) -> requests.Response:
-        return self.__client.get(f"{self.__auth}/{url}").json()
+        try:
+            return self.__client.get(f"{self.__auth}/{url}").json()
+        except requests.exceptions.ConnectionError as e:
+            print(e)
+            return {}
 
     def __post_request(self, url: str) -> None:
         self.__client.post(f"{self.__auth}/{url}")
@@ -22,22 +32,17 @@ class LeagueClient:
     def __delete_request(self, url: str) -> None:
         self.__client.delete(f"{self.__auth}/{url}")
 
-    def get_phase(self) -> requests.Response:
+    def get_gameflow(self) -> requests.Response:
         """
-        Lobby
-        Matchmaking
-        ReadyCheck
-        ChampSelect
+        gameflow_list = ['"None"'      , '"Lobby"'       , '"Matchmaking"',
+                         '"ReadyCheck"', '"ChampSelect"' , '"InProgress"' ,
+                         '"Reconnect"' , '"PreEndOfGame"', '"EndOfGame"' ,]
         """
         url = "lol-gameflow/v1/gameflow-phase"
         return self.__get_request(url)
 
     def get_matchmaking_info(self) -> requests.Response:
         url = "lol-matchmaking/v1/search"
-        return self.__get_request(url)
-
-    def get_team_info(self) -> requests.Response:
-        url = "lol-matchmaking/v1/team"
         return self.__get_request(url)
 
     def start_matchmaking(self) -> None:

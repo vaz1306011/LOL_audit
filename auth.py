@@ -1,4 +1,5 @@
 import re
+from typing import Optional
 
 import psutil
 
@@ -9,7 +10,7 @@ PORT_REGEX = re.compile(r"--app-port=(\d+)")
 TOKEN_REGEX = re.compile(r"--remoting-auth-token=(\S+)")
 
 
-def get_auth_string() -> str:
+def get_auth_string() -> Optional[str]:
     stdout = ""
     for proc in psutil.process_iter(["name", "cmdline"]):
         if proc.info["name"] == "LeagueClientUx.exe":
@@ -28,5 +29,8 @@ def get_auth_string() -> str:
         if token_match
         else ""
     )
+
+    if not token:
+        return None
 
     return f"https://riot:{token}@127.0.0.1:{port}"
