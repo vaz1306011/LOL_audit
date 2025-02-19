@@ -13,7 +13,7 @@ class LolAuditUi:
 
     def __init_ui(self):
         self.root = tk.Tk()
-        self.root.title("League of Legends")
+        self.root.title("LOL Audit")
         self.root.geometry("300x170+800+400")
         self.root.resizable(False, False)
         self.root.attributes("-topmost", True)
@@ -33,7 +33,7 @@ class LolAuditUi:
         self.match_button.pack(pady=5)
 
         # 顯示訊息
-        self.label = tk.Label(self.root, text="讀取中...", font=("Arial", 14))
+        self.label = tk.Label(self.root, text="...", font=("Arial", 14))
         self.label.pack(pady=20)
 
         # 自動接受對戰
