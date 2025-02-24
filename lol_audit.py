@@ -10,6 +10,7 @@ class LolAudit:
         self.__accept_delay = 3
         self.__auto_accept = True
         self.__auto_rematch = True
+        self.__auto_start_match = True
         self.__client = LeagueClient()
         self.__main_flag = threading.Event()
         self.__is_on_penalty_flag = False
@@ -23,6 +24,10 @@ class LolAudit:
         mchmking_info: dict = self.__client.get_matchmaking_info()
         search_state = mchmking_info.get("searchState")
         match search_state:
+            case "None":
+                if self.__auto_start_match and self.__is_on_penalty_flag:
+                    self.__client.start_matchmaking()
+                    self.__is_on_penalty_flag = False
 
             case "Searching":
                 time_in_queue = round(mchmking_info["timeInQueue"])
