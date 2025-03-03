@@ -12,7 +12,7 @@ class LolAuditUi:
 
     def __init_ui(self):
         self.root = tk.Tk()
-        self.root.title("LOL Audit v1.0.2")
+        self.root.title("LOL Audit v1.0.3")
         self.root.geometry("300x170+800+400")
         self.root.resizable(False, False)
         self.root.attributes("-topmost", True)
@@ -61,13 +61,16 @@ class LolAuditUi:
         self.lol_audit.stop_main()
 
     def __update(self, text: str):
-        if text == "未在列隊":
-            self.match_button.config(text="開始列隊", state="normal")
-        elif text.startswith("列隊中"):
-            self.match_button.config(text="停止列隊", state="normal")
-        else:
-            self.match_button.config(state="disabled")
-        self.label.config(text=text)
+        try:
+            if text == "未在列隊":
+                self.match_button.config(text="開始列隊", state="normal")
+            elif text.startswith("列隊中"):
+                self.match_button.config(text="停止列隊", state="normal")
+            else:
+                self.match_button.config(state="disabled")
+            self.label.config(text=text)
+        except AttributeError as e:
+            print(e)
 
     def __start_matchmaking(self):
         self.lol_audit.start_matchmaking()

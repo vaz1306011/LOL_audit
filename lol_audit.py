@@ -68,8 +68,7 @@ class LolAudit:
                     pass_time := round(
                         self.__client.get_matchmaking_info()["readyCheck"]["timer"]
                     )
-                    < self.__accept_delay
-                ):
+                ) < self.__accept_delay:
                     if self.__is_playerResponsed():
                         break
 
@@ -134,7 +133,6 @@ class LolAudit:
 
     def start_main(self) -> None:
         self.__main_flag.clear()
-
         main_thread = threading.Thread(target=self.__main)
         main_thread.daemon = True
         main_thread.start()
