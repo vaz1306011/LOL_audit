@@ -1,6 +1,8 @@
 import threading
 import time
 
+import requests
+
 from league_client import LeagueClient
 
 
@@ -16,11 +18,25 @@ class LolAudit:
         self.__is_on_penalty_flag = False
 
     def __is_playerResponsed(self) -> bool:
-        return self.__client.get_matchmaking_info().get("readyCheck", {}).get(
-            "playerResponse"
-        ) in ("Accepted", "Declined")
+        mchmking_info: dict = self.__client.get_matchmaking_info()
+        playerResponse = mchmking_info.get("readyCheck", {}).get("playerResponse")
+        return playerResponse in ("Accepted", "Declined")
 
-    def __matchmaking(self) -> None:
+    def __in_lobby(self) -> None:
+        mchmking_info: dict = self.__client.get_matchmaking_info()
+        search_state = mchmking_info.get("searchState")
+        match search_state:
+            case None:
+                self.__output("未在列隊")
+
+            case "Error":
+                if ptr := mchmking_info.get("penaltyTimeRemaining") > 0:
+                    self.__is_on_penalty_flag = True
+                    self.__output(f"懲罰時間剩餘{ptr}")
+                else:
+                    self.__output("matchmaking未知錯誤")
+
+    def __in_matchmaking(self) -> None:
         mchmking_info: dict = self.__client.get_matchmaking_info()
         search_state = mchmking_info.get("searchState")
         match search_state:
@@ -46,21 +62,14 @@ class LolAudit:
                     self.__client.start_matchmaking()
                     print("重新列隊")
 
-            case "Error":
-                if ptr := mchmking_info.get("penaltyTimeRemaining") > 0:
-                    self.__is_on_penalty_flag = True
-                    self.__output(f"懲罰時間剩餘{ptr}")
-                else:
-                    self.__output("matchmaking未知錯誤")
-
             case _:
                 self.__output(f"未知matchmaking狀態:{search_state}")
 
-    def __ready_check(self) -> None:
+    def __in_ready_check(self) -> None:
         mchmking_info: dict = self.__client.get_matchmaking_info()
-        state = mchmking_info.get("readyCheck", {}).get("state")
-        match state:
-            case "InProgress":
+        playerResponse = mchmking_info.get("readyCheck", {}).get("playerResponse")
+        match playerResponse:
+            case "None":
                 if not self.__auto_accept:
                     return
 
@@ -75,8 +84,8 @@ class LolAudit:
                     self.__output(f"等待接受對戰 {pass_time}/{self.__accept_delay}")
                     time.sleep(0.5)
                 else:
-                    self.__client.accept_match()
-                    self.__output("已接受對戰")
+                    if not self.__is_playerResponsed():
+                        self.__client.accept_match()
 
             case "Declined":
                 self.__output("已拒絕對戰")
@@ -85,7 +94,7 @@ class LolAudit:
                 self.__output("已接受對戰")
 
             case _:
-                self.__output(f"readycheck未知狀態:{state}")
+                self.__output(f"playerResponse未知狀態:{playerResponse}")
 
     def __main(self) -> None:
         while True:
@@ -93,24 +102,31 @@ class LolAudit:
                 print("停止程序")
                 break
 
-            if not self.__client.check_auth():
-                self.__output("讀取中")
-                self.__client.refresh_auth()
-                continue
+            # if not self.__client.check_auth():
+            #     self.__output("讀取中")
+            #     self.__client.refresh_auth()
+            #     continue
+            try:
+                gameflow = self.__client.get_gameflow()
+            except requests.exceptions.MissingSchema:
+                gameflow = {}
 
-            gameflow = self.__client.get_gameflow()
             match gameflow:
+                case {}:
+                    self.__output("讀取中")
+                    self.__client.refresh_auth()
+
                 case "None":
                     self.__output("未在房間內")
 
                 case "Lobby":
-                    self.__output("未在列隊")
+                    self.__in_lobby()
 
                 case "Matchmaking":
-                    self.__matchmaking()
+                    self.__in_matchmaking()
 
                 case "ReadyCheck":
-                    self.__ready_check()
+                    self.__in_ready_check()
 
                 case "ChampSelect":
                     self.__output("選擇英雄中")

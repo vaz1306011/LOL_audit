@@ -84,7 +84,6 @@ class LolAuditUi:
         except tk.TclError:
             delay = 0
 
-        print(delay)
         self.lol_audit.set_accept_delay(delay)
 
     def __toggle_matchmaking_button(self):
