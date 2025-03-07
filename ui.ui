@@ -1,0 +1,160 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ui version="4.0">
+ <class>MainWindow</class>
+ <widget class="QMainWindow" name="MainWindow">
+  <property name="geometry">
+   <rect>
+    <x>0</x>
+    <y>0</y>
+    <width>360</width>
+    <height>250</height>
+   </rect>
+  </property>
+  <property name="styleSheet">
+   <string notr="true">*{
+	color:#FFFFFF;
+}
+#MainWindow{
+	background-color:#121212;
+}
+
+QLineEdit{
+	background-color:#222322;
+	border:0;
+}
+
+QPushButton{
+	background-color: #2C2C2C;
+}
+QPushButton:hover{
+	background-color: #3C3C3C;
+}
+QPushButton:pressed{
+	 background-color: #1A1A1A;
+}</string>
+  </property>
+  <widget class="QWidget" name="centralwidget">
+   <widget class="QLineEdit" name="accept_delay_value">
+    <property name="geometry">
+     <rect>
+      <x>125</x>
+      <y>20</y>
+      <width>110</width>
+      <height>20</height>
+     </rect>
+    </property>
+    <property name="text">
+     <string>3</string>
+    </property>
+    <property name="alignment">
+     <set>Qt::AlignCenter</set>
+    </property>
+   </widget>
+   <widget class="QLabel" name="label">
+    <property name="geometry">
+     <rect>
+      <x>10</x>
+      <y>120</y>
+      <width>341</width>
+      <height>91</height>
+     </rect>
+    </property>
+    <property name="font">
+     <font>
+      <family>Arial</family>
+      <pointsize>14</pointsize>
+     </font>
+    </property>
+    <property name="layoutDirection">
+     <enum>Qt::LeftToRight</enum>
+    </property>
+    <property name="text">
+     <string>未在列隊</string>
+    </property>
+    <property name="textFormat">
+     <enum>Qt::PlainText</enum>
+    </property>
+    <property name="alignment">
+     <set>Qt::AlignCenter</set>
+    </property>
+   </widget>
+   <widget class="QPushButton" name="match_button">
+    <property name="geometry">
+     <rect>
+      <x>105</x>
+      <y>65</y>
+      <width>150</width>
+      <height>50</height>
+     </rect>
+    </property>
+    <property name="font">
+     <font>
+      <family>Arial</family>
+      <pointsize>12</pointsize>
+     </font>
+    </property>
+    <property name="text">
+     <string>開始列隊</string>
+    </property>
+   </widget>
+  </widget>
+  <widget class="QMenuBar" name="menubar">
+   <property name="geometry">
+    <rect>
+     <x>0</x>
+     <y>0</y>
+     <width>360</width>
+     <height>25</height>
+    </rect>
+   </property>
+   <property name="styleSheet">
+    <string notr="true">*{
+	background-color:#121212;
+}
+QMenuBar::item:selected{
+	background-color: #3C3C3C;
+}
+
+QMenu:selected{
+	 background-color:#2f2c2c;
+}
+
+QAciotn{
+	 background-color:#2f2c2c;
+}
+</string>
+   </property>
+   <widget class="QMenu" name="menu">
+    <property name="styleSheet">
+     <string notr="true"/>
+    </property>
+    <property name="title">
+     <string>選項</string>
+    </property>
+    <addaction name="always_on_top_status"/>
+    <addaction name="separator"/>
+    <addaction name="auto_accept_status"/>
+    <addaction name="auto_rematch_status"/>
+   </widget>
+   <addaction name="menu"/>
+  </widget>
+  <widget class="QStatusBar" name="statusbar"/>
+  <action name="auto_accept_status">
+   <property name="text">
+    <string>自動接受</string>
+   </property>
+  </action>
+  <action name="auto_rematch_status">
+   <property name="text">
+    <string>超時重排</string>
+   </property>
+  </action>
+  <action name="always_on_top_status">
+   <property name="text">
+    <string>視窗至頂</string>
+   </property>
+  </action>
+ </widget>
+ <resources/>
+ <connections/>
+</ui>
