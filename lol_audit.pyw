@@ -2,6 +2,7 @@ import threading
 import tkinter as tk
 
 from lol_audit import LolAudit
+from version import __version__
 
 
 class LolAuditUi:
@@ -12,7 +13,7 @@ class LolAuditUi:
 
     def __init_ui(self):
         self.root = tk.Tk()
-        self.root.title("LOL Audit v1.0.3")
+        self.root.title(f"LOL Audit vP{__version__}")
         self.root.geometry("300x170+800+400")
         self.root.resizable(False, False)
         self.root.attributes("-topmost", True)

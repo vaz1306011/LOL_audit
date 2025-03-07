@@ -1,9 +1,14 @@
+import logging
 import threading
 import time
 
 import requests
 
+import log_config
 from league_client import LeagueClient
+
+log_config.setup_logging()
+logger = logging.getLogger(__name__)
 
 
 class LolAudit:
@@ -49,6 +54,7 @@ class LolAudit:
                 time_in_queue = round(mchmking_info["timeInQueue"])
                 tiqM, tiqS = divmod(time_in_queue, 60)
                 estimated_time = round(mchmking_info["estimatedQueueTime"])
+                # estimated_time = 5
                 etM, etS = divmod(estimated_time, 60)
 
                 self.__output(
@@ -56,11 +62,11 @@ class LolAudit:
                 )
 
                 if self.__auto_rematch and time_in_queue > estimated_time:
-                    print("等待時間過長")
+                    logger.info("等待時間過長")
                     self.__client.quit_matchmaking()
-                    print("退出列隊")
+                    logger.info("退出列隊")
                     self.__client.start_matchmaking()
-                    print("重新列隊")
+                    logger.info("重新列隊")
 
             case _:
                 self.__output(f"未知matchmaking狀態:{search_state}")
@@ -99,7 +105,7 @@ class LolAudit:
     def __main(self) -> None:
         while True:
             if self.__main_flag.is_set():
-                print("停止程序")
+                logger.info("停止程序")
                 break
 
             # if not self.__client.check_auth():
@@ -182,5 +188,5 @@ class LolAudit:
 
 
 if __name__ == "__main__":
-    lol_audit = LolAudit(print)
+    lol_audit = LolAudit(logger.info)
     lol_audit.start_main()
