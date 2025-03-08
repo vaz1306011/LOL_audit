@@ -79,14 +79,21 @@ class LolAudit:
                 if not self.__auto_accept:
                     return
 
-                while (
-                    pass_time := round(
-                        self.__client.get_matchmaking_info()["readyCheck"]["timer"]
-                    )
-                ) < self.__accept_delay:
+                def ready_check_timer(accept_delay: int):
+                    while True:
+                        ready_check_data = self.__client.get_matchmaking_info()[
+                            "readyCheck"
+                        ]
+                        if ready_check_data["state"] != "InProgress":
+                            return
+                        pass_time = round(ready_check_data["timer"])
+                        if pass_time >= accept_delay:
+                            break
+                        yield pass_time
+
+                for pass_time in ready_check_timer(self.__accept_delay):
                     if self.__is_playerResponsed():
                         break
-
                     self.__output(f"等待接受對戰 {pass_time}/{self.__accept_delay}")
                     time.sleep(0.5)
                 else:
