@@ -2,9 +2,11 @@ import logging
 import sys
 
 from PySide6.QtCore import QObject, Qt, QThread, Signal
+from PySide6.QtGui import QIcon
 from PySide6.QtWidgets import QApplication, QMainWindow
 
 from lol_audit import LolAudit
+from lol_audit_tray import LolAuditTray
 from ui import Ui_MainWindow
 from version import __version__
 
@@ -27,6 +29,8 @@ class LolAuditUi(QMainWindow, Ui_MainWindow):
         super().__init__()
         self.setupUi(self)  # 設置 UI 佈局
         self.setWindowTitle(f"LOL Audit v{__version__}")
+        self.icon = QIcon("./lol_audit.ico")
+        self.setWindowIcon(self.icon)
         self.setFixedSize(self.size())
         self.setWindowFlag(Qt.WindowType.WindowStaysOnTopHint, True)
 
@@ -43,32 +47,36 @@ class LolAuditUi(QMainWindow, Ui_MainWindow):
         self.__init_ui()
 
     def __init_ui(self):
+        # 接受延遲
         self.accept_delay_value.setText(
             str(self.main_thread.lol_audit.get_accept_delay())
         )
         self.accept_delay_value.textChanged.connect(self.__set_accept_delay)
 
+        # 列隊按鈕
         self.match_button.clicked.connect(self.__toggle_matchmaking_button)
 
+        # 至頂開關
         self.always_on_top_status.setCheckable(True)
         self.always_on_top_status.setChecked(True)
         self.always_on_top_status.triggered.connect(self.__toggle_always_on_top)
 
-        # auto_accept_action 為可勾選的 QAction
+        # 自動接受開關
         self.auto_accept_status.setCheckable(True)
-        self.auto_accept_status.setChecked(
-            self.main_thread.lol_audit.get_auto_accept()
-        )  # 設定初始狀態
+        self.auto_accept_status.setChecked(self.main_thread.lol_audit.get_auto_accept())
         self.auto_accept_status.triggered.connect(self.__toggle_auto_accept)
 
-        # auto_rematch_action 為可勾選的 QAction
+        # 自動重新列隊開關
         self.auto_rematch_status.setCheckable(True)
         self.auto_rematch_status.setChecked(
             self.main_thread.lol_audit.get_auto_rematch()
-        )  # 設定初始狀態
+        )
         self.auto_rematch_status.triggered.connect(self.__toggle_auto_rematch)
 
-        self.show()
+        # 系統托盤
+        self.tray = LolAuditTray(self, self.icon)
+        self.tray.quit_action.triggered.connect(self.__exit_app)
+        self.tray.show()
 
     def __update(self, text: str):
         if text == "未在列隊":
@@ -115,14 +123,19 @@ class LolAuditUi(QMainWindow, Ui_MainWindow):
             self.auto_rematch_status.isChecked()
         )
 
-    def closeEvent(self, event):
+    def __exit_app(self):
         self.main_thread.lol_audit.stop_main()
         self.thread.quit()
         self.thread.wait()
-        event.accept()
+        QApplication.quit()
+
+    def closeEvent(self, event):
+        event.ignore()
+        self.hide()
 
 
 if __name__ == "__main__":
     app = QApplication(sys.argv)
     lol_audit_ui = LolAuditUi()
+    lol_audit_ui.show()
     sys.exit(app.exec())
