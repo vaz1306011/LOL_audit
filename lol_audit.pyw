@@ -5,21 +5,19 @@ from PySide6.QtCore import QObject, Qt, QThread, Signal
 from PySide6.QtGui import QIcon
 from PySide6.QtWidgets import QApplication, QMainWindow
 
-from lol_audit_main import LolAudit
-from lol_audit_tray import LolAuditTray
-from resource_path import resource_path
-from ui import Ui_MainWindow
-from version import __version__
+from lolaudit import MatchManager, __version__
+from lolaudit.ui import Tray, Ui_MainWindow
+from lolaudit.utils import resource_path
 
 logger = logging.getLogger(__name__)
 
 
-class Worker(QObject):
+class MainThread(QObject):
     update_signal = Signal(str)
 
     def __init__(self):
         super().__init__()
-        self.lol_audit = LolAudit(self.update_signal.emit)
+        self.lol_audit = MatchManager(self.update_signal.emit)
 
     def run(self):
         self.lol_audit.start_main()
@@ -36,7 +34,7 @@ class LolAuditUi(QMainWindow, Ui_MainWindow):
         self.setWindowFlag(Qt.WindowType.WindowStaysOnTopHint, True)
 
         # 創建一個工作線程來運行 main 方法
-        self.main_thread = Worker()
+        self.main_thread = MainThread()
         self.main_thread.update_signal.connect(self.__update)
 
         # 創建線程執行 Worker.run 方法
@@ -46,6 +44,7 @@ class LolAuditUi(QMainWindow, Ui_MainWindow):
         self.thread.start()
 
         self.__init_ui()
+        logger.info("UI 初始化完成")
 
     def __init_ui(self):
         # 接受延遲
@@ -75,7 +74,7 @@ class LolAuditUi(QMainWindow, Ui_MainWindow):
         self.auto_rematch_status.triggered.connect(self.__toggle_auto_rematch)
 
         # 系統托盤
-        self.tray = LolAuditTray(self, self.icon)
+        self.tray = Tray(self, self.icon)
         self.tray.quit_action.triggered.connect(self.__exit_app)
         self.tray.show()
 

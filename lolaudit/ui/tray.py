@@ -2,7 +2,7 @@ from PySide6.QtGui import QIcon
 from PySide6.QtWidgets import QMenu, QSystemTrayIcon
 
 
-class LolAuditTray(QSystemTrayIcon):
+class Tray(QSystemTrayIcon):
     def __init__(self, parent, icon: QIcon):
         super().__init__(parent)
         self.setIcon(icon)

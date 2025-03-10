@@ -4,14 +4,14 @@ import time
 
 import requests
 
-import log_config
-from league_client import LeagueClient
+from lolaudit.lcu import LeagueClient
+from lolaudit.utils import setup_logging
 
-log_config.setup_logging()
+setup_logging()
 logger = logging.getLogger(__name__)
 
 
-class LolAudit:
+class MatchManager:
     def __init__(self, output) -> None:
         self.__output = output
         self.__accept_delay = 3
@@ -189,5 +189,5 @@ class LolAudit:
 
 
 if __name__ == "__main__":
-    lol_audit = LolAudit(logger.info)
+    lol_audit = MatchManager(logger.info)
     lol_audit.start_main()

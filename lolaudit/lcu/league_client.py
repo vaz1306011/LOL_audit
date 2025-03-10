@@ -1,6 +1,6 @@
 import requests
 
-import auth
+from . import auth
 
 requests.packages.urllib3.disable_warnings()
 
