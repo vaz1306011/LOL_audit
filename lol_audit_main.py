@@ -110,15 +110,7 @@ class LolAudit:
                 self.__output(f"playerResponse未知狀態:{playerResponse}")
 
     def __main(self) -> None:
-        while True:
-            if self.__main_flag.is_set():
-                logger.info("停止程序")
-                break
-
-            # if not self.__client.check_auth():
-            #     self.__output("讀取中")
-            #     self.__client.refresh_auth()
-            #     continue
+        while not self.__main_flag.is_set():
             try:
                 gameflow = self.__client.get_gameflow()
             except requests.exceptions.MissingSchema:
@@ -159,6 +151,8 @@ class LolAudit:
                 case _:
                     self.__output(f"未知gameflow狀態:{gameflow}")
             time.sleep(0.5)
+        else:
+            logger.info("停止程序")
 
     def start_main(self) -> None:
         self.__main_flag.clear()

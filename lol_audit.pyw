@@ -7,6 +7,7 @@ from PySide6.QtWidgets import QApplication, QMainWindow
 
 from lol_audit_main import LolAudit
 from lol_audit_tray import LolAuditTray
+from resource_path import resource_path
 from ui import Ui_MainWindow
 from version import __version__
 
@@ -29,7 +30,7 @@ class LolAuditUi(QMainWindow, Ui_MainWindow):
         super().__init__()
         self.setupUi(self)  # 設置 UI 佈局
         self.setWindowTitle(f"LOL Audit v{__version__}")
-        self.icon = QIcon("./lol_audit.ico")
+        self.icon = QIcon(resource_path("./lol_audit.ico"))
         self.setWindowIcon(self.icon)
         self.setFixedSize(self.size())
         self.setWindowFlag(Qt.WindowType.WindowStaysOnTopHint, True)
