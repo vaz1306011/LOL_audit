@@ -5,7 +5,7 @@ from PySide6.QtCore import QObject, Qt, QThread, Signal
 from PySide6.QtGui import QIcon
 from PySide6.QtWidgets import QApplication, QMainWindow
 
-from lol_audit import LolAudit
+from lol_audit_main import LolAudit
 from lol_audit_tray import LolAuditTray
 from ui import Ui_MainWindow
 from version import __version__
