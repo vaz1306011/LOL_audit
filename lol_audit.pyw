@@ -1,3 +1,4 @@
+import ctypes
 import logging
 import sys
 
@@ -38,10 +39,10 @@ class LolAuditUi(QMainWindow, Ui_MainWindow):
         self.main_thread.update_signal.connect(self.__update)
 
         # 創建線程執行 Worker.run 方法
-        self.thread = QThread()
-        self.main_thread.moveToThread(self.thread)
-        self.thread.started.connect(self.main_thread.run)
-        self.thread.start()
+        self.woker_thread = QThread()
+        self.main_thread.moveToThread(self.woker_thread)
+        self.woker_thread.started.connect(self.main_thread.run)
+        self.woker_thread.start()
 
         self.__init_ui()
         logger.info("UI 初始化完成")
@@ -125,8 +126,8 @@ class LolAuditUi(QMainWindow, Ui_MainWindow):
 
     def __exit_app(self):
         self.main_thread.lol_audit.stop_main()
-        self.thread.quit()
-        self.thread.wait()
+        self.woker_thread.quit()
+        self.woker_thread.wait()
         QApplication.quit()
 
     def closeEvent(self, event):
@@ -135,7 +136,20 @@ class LolAuditUi(QMainWindow, Ui_MainWindow):
 
 
 if __name__ == "__main__":
+    try:
+        app_id = "com.lol_audit.app"
+        ctypes.windll.shell32.SetCurrentProcessExplicitAppUserModelID(app_id)
+    except ImportError:
+        pass
+
     app = QApplication(sys.argv)
+
+    mutex_name = f"Global\\{app_id}"
+    mutex = ctypes.windll.kernel32.CreateMutexW(None, False, mutex_name)
+    if ctypes.windll.kernel32.GetLastError() == 183:
+        print("Another instance is already running.")
+        sys.exit()
     lol_audit_ui = LolAuditUi()
     lol_audit_ui.show()
+
     sys.exit(app.exec())

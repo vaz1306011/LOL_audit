@@ -1,10 +1,11 @@
 from PySide6.QtGui import QIcon
-from PySide6.QtWidgets import QMenu, QSystemTrayIcon
+from PySide6.QtWidgets import QMenu, QSystemTrayIcon, QWidget
 
 
 class Tray(QSystemTrayIcon):
-    def __init__(self, parent, icon: QIcon):
+    def __init__(self, parent: QWidget, icon: QIcon):
         super().__init__(parent)
+        self.__parent: QWidget = parent
         self.setIcon(icon)
         self.setToolTip("LOL Audit")
 
@@ -17,6 +18,6 @@ class Tray(QSystemTrayIcon):
 
     def on_click(self, reason):
         if reason == QSystemTrayIcon.ActivationReason.Trigger:
-            self.parent().show()
+            self.__parent.show()
         elif reason == QSystemTrayIcon.ActivationReason.Context:
             self.__menu.show()
