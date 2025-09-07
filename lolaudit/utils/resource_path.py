@@ -5,5 +5,5 @@ import sys
 def resource_path(relative_path):
     """獲取打包後的檔案路徑"""
     if hasattr(sys, "_MEIPASS"):
-        return os.path.join(sys._MEIPASS, relative_path)
+        return os.path.join(sys._MEIPASS, relative_path)  # type: ignore
     return relative_path

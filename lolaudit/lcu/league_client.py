@@ -1,8 +1,12 @@
+import logging
+
 import requests
+import urllib3
 
 from . import auth
 
-requests.packages.urllib3.disable_warnings()
+urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
+logger = logging.getLogger(__name__)
 
 
 class LeagueClient:
@@ -11,7 +15,6 @@ class LeagueClient:
         self.__client = requests.Session()
         self.__client.verify = False
         self.__client.headers.update({"Accept": "application/json"})
-        self.__client.timeout = 10
 
     def check_auth(self) -> bool:
         return self.__auth is not None
@@ -19,20 +22,26 @@ class LeagueClient:
     def refresh_auth(self) -> None:
         self.__auth = auth.get_auth_string()
 
-    def __get_request(self, url: str) -> requests.Response:
+    def __get_request(self, url: str) -> dict:
         try:
-            return self.__client.get(f"{self.__auth}/{url}").json()
+            return self.__client.get(f"{self.__auth}/{url}", timeout=(3, 10)).json()
         except requests.exceptions.ConnectionError as e:
-            print(e)
+            logger.error(e)
             return {}
 
     def __post_request(self, url: str) -> None:
-        self.__client.post(f"{self.__auth}/{url}")
+        try:
+            self.__client.post(f"{self.__auth}/{url}", timeout=(3, 10))
+        except requests.exceptions.ConnectionError as e:
+            logger.error(e)
 
     def __delete_request(self, url: str) -> None:
-        self.__client.delete(f"{self.__auth}/{url}")
+        try:
+            self.__client.delete(f"{self.__auth}/{url}", timeout=(3, 10))
+        except requests.exceptions.ConnectionError as e:
+            logger.error(e)
 
-    def get_gameflow(self) -> requests.Response:
+    def get_gameflow(self) -> dict:
         """
         gameflow_list = ['"None"'      , '"Lobby"'       , '"Matchmaking"',
                          '"ReadyCheck"', '"ChampSelect"' , '"InProgress"' ,
@@ -41,7 +50,7 @@ class LeagueClient:
         url = "lol-gameflow/v1/gameflow-phase"
         return self.__get_request(url)
 
-    def get_matchmaking_info(self) -> requests.Response:
+    def get_matchmaking_info(self) -> dict:
         url = "lol-matchmaking/v1/search"
         return self.__get_request(url)
 

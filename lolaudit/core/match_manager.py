@@ -7,7 +7,6 @@ import requests
 from lolaudit.lcu import LeagueClient
 from lolaudit.utils import setup_logging
 
-setup_logging()
 logger = logging.getLogger(__name__)
 
 
@@ -22,6 +21,51 @@ class MatchManager:
         self.__main_flag = threading.Event()
         self.__is_on_penalty_flag = False
 
+    def __main(self) -> None:
+        while not self.__main_flag.is_set():
+            try:
+                gameflow = self.__client.get_gameflow()
+            except requests.exceptions.MissingSchema:
+                gameflow = {}
+
+            match gameflow:
+                case {}:
+                    self.__output("讀取中")
+                    self.__client.refresh_auth()
+
+                case "None":
+                    self.__output("未在房間內")
+
+                case "Lobby":
+                    self.__in_lobby()
+
+                case "Matchmaking":
+                    self.__in_matchmaking()
+
+                case "ReadyCheck":
+                    self.__in_ready_check()
+
+                case "ChampSelect":
+                    self.__output("選擇英雄中")
+
+                case "InProgress":
+                    self.__output("遊戲中")
+
+                case "Reconnect":
+                    self.__output("重新連接中")
+
+                case "PreEndOfGame":
+                    self.__output("點讚畫面")
+
+                case "EndOfGame":
+                    self.__output("結算畫面")
+
+                case _:
+                    self.__output(f"未知gameflow狀態:{gameflow}")
+            time.sleep(0.5)
+        else:
+            logger.info("停止程序")
+
     def __is_playerResponsed(self) -> bool:
         mchmking_info: dict = self.__client.get_matchmaking_info()
         playerResponse = mchmking_info.get("readyCheck", {}).get("playerResponse")
@@ -29,13 +73,13 @@ class MatchManager:
 
     def __in_lobby(self) -> None:
         mchmking_info: dict = self.__client.get_matchmaking_info()
-        search_state = mchmking_info.get("searchState")
+        search_state = mchmking_info["searchState"]
         match search_state:
             case None:
                 self.__output("未在列隊")
 
             case "Error":
-                if ptr := mchmking_info.get("penaltyTimeRemaining") > 0:
+                if ptr := mchmking_info["penaltyTimeRemaining"] > 0:
                     self.__is_on_penalty_flag = True
                     self.__output(f"懲罰時間剩餘{ptr}")
                 else:
@@ -43,7 +87,7 @@ class MatchManager:
 
     def __in_matchmaking(self) -> None:
         mchmking_info: dict = self.__client.get_matchmaking_info()
-        search_state = mchmking_info.get("searchState")
+        search_state = mchmking_info["searchState"]
         match search_state:
             case "None":
                 if self.__auto_start_match and self.__is_on_penalty_flag:
@@ -108,51 +152,6 @@ class MatchManager:
 
             case _:
                 self.__output(f"playerResponse未知狀態:{playerResponse}")
-
-    def __main(self) -> None:
-        while not self.__main_flag.is_set():
-            try:
-                gameflow = self.__client.get_gameflow()
-            except requests.exceptions.MissingSchema:
-                gameflow = {}
-
-            match gameflow:
-                case {}:
-                    self.__output("讀取中")
-                    self.__client.refresh_auth()
-
-                case "None":
-                    self.__output("未在房間內")
-
-                case "Lobby":
-                    self.__in_lobby()
-
-                case "Matchmaking":
-                    self.__in_matchmaking()
-
-                case "ReadyCheck":
-                    self.__in_ready_check()
-
-                case "ChampSelect":
-                    self.__output("選擇英雄中")
-
-                case "InProgress":
-                    self.__output("遊戲中")
-
-                case "Reconnect":
-                    self.__output("重新連接中")
-
-                case "PreEndOfGame":
-                    self.__output("點讚畫面")
-
-                case "EndOfGame":
-                    self.__output("結算畫面")
-
-                case _:
-                    self.__output(f"未知gameflow狀態:{gameflow}")
-            time.sleep(0.5)
-        else:
-            logger.info("停止程序")
 
     def start_main(self) -> None:
         self.__main_flag.clear()
