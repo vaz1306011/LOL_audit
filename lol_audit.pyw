@@ -1,8 +1,8 @@
-import ctypes
 import logging
+import os
 import sys
 
-from PySide6.QtCore import QObject, Qt, QThread, Signal
+from PySide6.QtCore import QLockFile, QObject, Qt, QThread, Signal
 from PySide6.QtGui import QIcon
 from PySide6.QtWidgets import QApplication, QMainWindow
 
@@ -143,19 +143,16 @@ class LolAuditUi(QMainWindow, Ui_MainWindow):
 
 
 if __name__ == "__main__":
-    try:
-        app_id = "com.lol_audit.app"
-        ctypes.windll.shell32.SetCurrentProcessExplicitAppUserModelID(app_id)
-    except ImportError:
-        pass
+    import tempfile
 
     app = QApplication(sys.argv)
 
-    mutex_name = f"Global\\{app_id}"
-    mutex = ctypes.windll.kernel32.CreateMutexW(None, False, mutex_name)
-    if ctypes.windll.kernel32.GetLastError() == 183:
+    lock_file_path = os.path.join(tempfile.gettempdir(), "lol_audit.lock")
+    lock_file = QLockFile(lock_file_path)
+    if not lock_file.tryLock(100):
         logger.warning("Another instance is already running.")
-        sys.exit()
+        sys.exit(1)
+
     lol_audit_ui = LolAuditUi()
     lol_audit_ui.show()
 
