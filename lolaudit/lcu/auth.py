@@ -8,17 +8,19 @@ LCU_PORT_KEY = "--app-port="
 LCU_TOKEN_KEY = "--remoting-auth-token="
 PORT_REGEX = re.compile(r"--app-port=(\d+)")
 TOKEN_REGEX = re.compile(r"--remoting-auth-token=(\S+)")
+LEAGUE_PROCESSES = {"LeagueClientUx.exe", "LeagueClientUx"}
+RIOT_PROCESSES = {"Riot Client.exe", "Riot Client"}
 
 
 def get_auth_string() -> Optional[str]:
     stdout = ""
     for proc in psutil.process_iter(["name", "cmdline"]):
-        if proc.info["name"] == "LeagueClientUx.exe":
-            stdout = " ".join(proc.info["cmdline"])
-        elif proc.info["name"] == "Riot Client.exe" and PORT_REGEX.search(
-            str(proc.info["cmdline"])
-        ):
-            stdout = " ".join(proc.info["cmdline"])
+        name, cmdline = proc.info["name"], proc.info["cmdline"]
+
+        if name in LEAGUE_PROCESSES:
+            stdout = " ".join(cmdline)
+        elif name in RIOT_PROCESSES and PORT_REGEX.search(str(cmdline)):
+            stdout = " ".join(cmdline)
 
     port_match = PORT_REGEX.search(stdout)
     port = port_match.group(1).replace(LCU_PORT_KEY, "") if port_match else "0"
