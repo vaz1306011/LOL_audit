@@ -5,7 +5,6 @@ import time
 import requests
 
 from lolaudit.lcu import LeagueClient
-from lolaudit.utils import setup_logging
 
 logger = logging.getLogger(__name__)
 
@@ -73,7 +72,7 @@ class MatchManager:
 
     def __in_lobby(self) -> None:
         mchmking_info: dict = self.__client.get_matchmaking_info()
-        search_state = mchmking_info["searchState"]
+        search_state = mchmking_info.get("searchState")
         match search_state:
             case None:
                 self.__output("未在列隊")
