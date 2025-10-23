@@ -86,7 +86,7 @@ class MatchManager:
 
     def __in_matchmaking(self) -> None:
         mchmking_info: dict = self.__client.get_matchmaking_info()
-        search_state = mchmking_info["searchState"]
+        search_state = mchmking_info.get("searchState")
         match search_state:
             case "None":
                 if self.__auto_start_match and self.__is_on_penalty_flag:
