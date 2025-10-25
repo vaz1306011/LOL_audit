@@ -4,6 +4,7 @@ import time
 
 import requests
 
+from lolaudit.core.gameflow import Gameflow
 from lolaudit.lcu import LeagueClient
 
 logger = logging.getLogger(__name__)

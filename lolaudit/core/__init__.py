@@ -1,1 +1,1 @@
-from .match_manager import MatchManager
+from lolaudit.core.match_manager import MatchManager

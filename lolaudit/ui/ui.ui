@@ -34,22 +34,6 @@ QPushButton:pressed{
 }</string>
   </property>
   <widget class="QWidget" name="centralwidget">
-   <widget class="QLineEdit" name="accept_delay_value">
-    <property name="geometry">
-     <rect>
-      <x>125</x>
-      <y>20</y>
-      <width>110</width>
-      <height>20</height>
-     </rect>
-    </property>
-    <property name="text">
-     <string>3</string>
-    </property>
-    <property name="alignment">
-     <set>Qt::AlignCenter</set>
-    </property>
-   </widget>
    <widget class="QLabel" name="label">
     <property name="geometry">
      <rect>
@@ -64,9 +48,6 @@ QPushButton:pressed{
       <family>Arial</family>
       <pointsize>14</pointsize>
      </font>
-    </property>
-    <property name="layoutDirection">
-     <enum>Qt::LeftToRight</enum>
     </property>
     <property name="text">
      <string>未在列隊</string>
@@ -95,6 +76,38 @@ QPushButton:pressed{
     </property>
     <property name="text">
      <string>開始列隊</string>
+    </property>
+   </widget>
+   <widget class="QSlider" name="horizontalSlider">
+    <property name="geometry">
+     <rect>
+      <x>140</x>
+      <y>20</y>
+      <width>131</width>
+      <height>22</height>
+     </rect>
+    </property>
+    <property name="maximum">
+     <number>10</number>
+    </property>
+    <property name="orientation">
+     <enum>Qt::Horizontal</enum>
+    </property>
+   </widget>
+   <widget class="QLabel" name="label_2">
+    <property name="geometry">
+     <rect>
+      <x>70</x>
+      <y>20</y>
+      <width>58</width>
+      <height>21</height>
+     </rect>
+    </property>
+    <property name="text">
+     <string>3</string>
+    </property>
+    <property name="alignment">
+     <set>Qt::AlignCenter</set>
     </property>
    </widget>
   </widget>
@@ -138,7 +151,6 @@ QAciotn{
    </widget>
    <addaction name="menu"/>
   </widget>
-  <widget class="QStatusBar" name="statusbar"/>
   <action name="auto_accept_status">
    <property name="text">
     <string>自動接受</string>

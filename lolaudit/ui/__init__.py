@@ -1,2 +1,2 @@
-from .tray import Tray
-from .ui import Ui_MainWindow
+from lolaudit.ui.tray import Tray
+from lolaudit.ui.ui import Ui_MainWindow

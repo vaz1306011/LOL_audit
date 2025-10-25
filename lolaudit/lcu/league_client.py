@@ -3,7 +3,7 @@ import logging
 import requests
 import urllib3
 
-from . import auth
+from lolaudit.lcu import auth
 
 urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 logger = logging.getLogger(__name__)

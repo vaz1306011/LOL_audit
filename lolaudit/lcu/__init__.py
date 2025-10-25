@@ -1,1 +1,1 @@
-from .league_client import LeagueClient
+from lolaudit.lcu.league_client import LeagueClient

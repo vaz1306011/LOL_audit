@@ -1,0 +1,38 @@
+import json
+
+from PySide6.QtCore import QObject
+
+from lolaudit.config.config_keys import ConfigKeys
+from lolaudit.config.config_model import Config
+
+
+class ConfigManager(QObject):
+    def __init__(self, config_path: str) -> None:
+        self.__setting_path = config_path
+        self.setting = Config()
+        self.load_config()
+
+    def load_config(self) -> None:
+        try:
+            with open(self.__setting_path, "r", encoding="utf-8") as f:
+                data = json.load(f)
+                self.setting = Config(**data)
+        except (FileNotFoundError, json.JSONDecodeError):
+            self.save_config()
+
+    def save_config(self) -> None:
+        with open(self.__setting_path, "w", encoding="utf-8") as f:
+            json.dump(self.setting.__dict__, f, ensure_ascii=False, indent=2)
+
+    def set_config(self, key: ConfigKeys, value: object) -> None:
+        if hasattr(self.setting, key.value):
+            setattr(self.setting, key.value, value)
+            self.save_config()
+        else:
+            raise AttributeError(f"Setting has no attribute '{key}'")
+
+    def get_config(self, key: ConfigKeys) -> bool | int:
+        if hasattr(self.setting, key.value):
+            return getattr(self.setting, key.value)
+        else:
+            raise AttributeError(f"Setting has no attribute '{key}'")
