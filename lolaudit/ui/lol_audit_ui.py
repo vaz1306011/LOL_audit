@@ -73,13 +73,16 @@ class LolAuditUi(QMainWindow, Ui_MainWindow):
             case Gameflow.LOBBY:
                 self.match_button.setText("開始列隊")
                 self.match_button.setDisabled(False)
+                self.match_button.show()
 
             case Gameflow.MATCHMAKING:
                 self.match_button.setText("停止列隊")
                 self.match_button.setDisabled(False)
+                self.match_button.show()
 
             case _:
                 self.match_button.setDisabled(True)
+                self.match_button.hide()
 
     def __on_match_button_click(self):
         if self.gameflow == Gameflow.LOBBY:
