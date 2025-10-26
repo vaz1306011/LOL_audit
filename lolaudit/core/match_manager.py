@@ -73,11 +73,6 @@ class MatchManager(QObject):
         else:
             logger.info("停止程序")
 
-    def __is_playerResponsed(self) -> bool:
-        mchmking_info: dict = self.__client.get_matchmaking_info()
-        playerResponse = mchmking_info.get("readyCheck", {}).get("playerResponse")
-        return playerResponse in ("Accepted", "Declined")
-
     def __in_lobby(self) -> None:
         mchmking_info: dict = self.__client.get_matchmaking_info()
         search_state = mchmking_info.get("searchState")
@@ -163,6 +158,11 @@ class MatchManager(QObject):
 
             case _:
                 raise Exception(f"未知playerResponse狀態:{playerResponse}")
+
+    def __is_playerResponsed(self) -> bool:
+        mchmking_info: dict = self.__client.get_matchmaking_info()
+        playerResponse = mchmking_info.get("readyCheck", {}).get("playerResponse")
+        return playerResponse in ("Accepted", "Declined")
 
     def start_main(self) -> None:
         self.__main_flag.clear()
