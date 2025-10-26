@@ -1,14 +1,15 @@
 import logging
 
-from PySide6.QtCore import Qt
-from PySide6.QtGui import QIcon
-from PySide6.QtWidgets import QApplication, QMainWindow
+from PySide6.QtCore import Qt, QUrl
+from PySide6.QtGui import QDesktopServices, QIcon
+from PySide6.QtWidgets import QApplication, QMainWindow, QMessageBox
 
 from lolaudit.config import ConfigKeys
 from lolaudit.core.gameflow import Gameflow
 from lolaudit.core.main_controller import MainController
 from lolaudit.ui import Tray, Ui_MainWindow
 from lolaudit.utils import resource_path
+from lolaudit.utils.update_checker import check_update
 
 logger = logging.getLogger(__name__)
 
@@ -17,7 +18,7 @@ class LolAuditUi(QMainWindow, Ui_MainWindow):
     def __init__(self, version):
         super().__init__()
         self.setupUi(self)
-        self.setWindowTitle(f"LOL Audit v{version}")
+        self.setWindowTitle(f"LOL Audit {version}")
         self.icon = QIcon(resource_path("./lol_audit.ico"))
         self.setWindowIcon(self.icon)
         self.setFixedSize(self.size())
@@ -27,6 +28,8 @@ class LolAuditUi(QMainWindow, Ui_MainWindow):
         self.controller.ui_update.connect(self.__on_ui_update)
         self.__init_ui()
         logger.info("UI 初始化完成")
+
+        self.__check_update(version)
 
         self.gameflow: Gameflow
 
@@ -94,6 +97,29 @@ class LolAuditUi(QMainWindow, Ui_MainWindow):
         self.setWindowFlag(Qt.WindowType.WindowStaysOnTopHint, status)
         self.show()
         self.controller.config.set_config(ConfigKeys.ALWAYS_ON_TOP, status)
+
+    def __check_update(self, version):
+        result = check_update(version)
+        if not result.has_update:
+            logger.info("已是最新版本")
+            return
+
+        latest = result.latest
+        url = result.url
+        notes = result.notes or ""
+        logger.info(f"發現新版本: {latest}")
+
+        msg = QMessageBox(self)
+        msg.setWindowTitle("有新版本可用")
+        msg.setText(f"檢測到新版本：{latest}\n\n是否前往下載？")
+        msg.setInformativeText(notes)
+        msg.setStandardButtons(
+            QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No
+        )
+        msg.setDefaultButton(QMessageBox.StandardButton.Yes)
+
+        if msg.exec() == QMessageBox.StandardButton.Yes:
+            QDesktopServices.openUrl(QUrl(url))
 
     def __exit_app(self):
         self.controller.stop()
