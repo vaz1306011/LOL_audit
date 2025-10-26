@@ -5,6 +5,7 @@ from PySide6.QtGui import QIcon
 from PySide6.QtWidgets import QApplication, QMainWindow
 
 from lolaudit.config import ConfigKeys
+from lolaudit.core.gameflow import Gameflow
 from lolaudit.core.main_controller import MainController
 from lolaudit.ui import Tray, Ui_MainWindow
 from lolaudit.utils import resource_path
@@ -23,16 +24,18 @@ class LolAuditUi(QMainWindow, Ui_MainWindow):
         self.setWindowFlag(Qt.WindowType.WindowStaysOnTopHint, True)
 
         self.controller = MainController()
-        self.controller.update_signal.connect(self.__update)
+        self.controller.ui_update.connect(self.__on_ui_update)
         self.__init_ui()
         logger.info("UI 初始化完成")
+
+        self.gameflow: Gameflow
 
     def __init_ui(self):
         cfg = self.controller.config
         self.accept_delay_value.setText(str(cfg.get_config(ConfigKeys.ACCEPT_DELAY)))
         self.accept_delay_value.textChanged.connect(self.controller.set_accept_delay)
 
-        self.match_button.clicked.connect(self.__toggle_matchmaking_button)
+        self.match_button.clicked.connect(self.__on_match_button_click)
 
         for key, widget, func in [
             (
@@ -62,19 +65,24 @@ class LolAuditUi(QMainWindow, Ui_MainWindow):
         self.tray.quit_action.triggered.connect(self.__exit_app)
         self.tray.show()
 
-    def __update(self, text: str):
-        if text == "未在列隊":
-            self.match_button.setText("開始列隊")
-            self.match_button.setEnabled(True)
-        elif text.startswith("列隊中"):
-            self.match_button.setText("停止列隊")
-            self.match_button.setEnabled(True)
-        else:
-            self.match_button.setEnabled(False)
+    def __on_ui_update(self, gameflow: Gameflow, text: str):
+        self.gameflow = gameflow
         self.label.setText(text)
 
-    def __toggle_matchmaking_button(self):
-        if self.match_button.text() == "開始列隊":
+        match gameflow:
+            case Gameflow.LOBBY:
+                self.match_button.setText("開始列隊")
+                self.match_button.setDisabled(False)
+
+            case Gameflow.MATCHMAKING:
+                self.match_button.setText("停止列隊")
+                self.match_button.setDisabled(False)
+
+            case _:
+                self.match_button.setDisabled(True)
+
+    def __on_match_button_click(self):
+        if self.gameflow == Gameflow.LOBBY:
             self.controller.start_matchmaking()
         else:
             self.controller.stop_matchmaking()

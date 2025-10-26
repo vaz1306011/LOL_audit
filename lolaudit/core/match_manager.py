@@ -3,6 +3,7 @@ import threading
 import time
 
 import requests
+from PySide6.QtCore import QObject, Signal
 
 from lolaudit.core.gameflow import Gameflow
 from lolaudit.lcu import LeagueClient
@@ -10,9 +11,11 @@ from lolaudit.lcu import LeagueClient
 logger = logging.getLogger(__name__)
 
 
-class MatchManager:
-    def __init__(self, output) -> None:
-        self.__output = output
+class MatchManager(QObject):
+    gameflow_change = Signal(Gameflow, dict)
+
+    def __init__(self) -> None:
+        super().__init__()
         self.__accept_delay = 3
         self.__auto_accept = True
         self.__auto_rematch = True
@@ -28,40 +31,44 @@ class MatchManager:
             except requests.exceptions.MissingSchema:
                 gameflow = {}
 
-            match gameflow:
-                case {}:
-                    self.__output("讀取中")
-                    self.__client.refresh_auth()
+            try:
+                match gameflow:
+                    case {}:
+                        self.gameflow_change.emit(Gameflow.LOADING, {})
+                        self.__client.refresh_auth()
 
-                case "None":
-                    self.__output("未在房間內")
+                    case "None":
+                        self.gameflow_change.emit(Gameflow.NONE, {})
 
-                case "Lobby":
-                    self.__in_lobby()
+                    case "Lobby":
+                        self.__in_lobby()
 
-                case "Matchmaking":
-                    self.__in_matchmaking()
+                    case "Matchmaking":
+                        self.__in_matchmaking()
 
-                case "ReadyCheck":
-                    self.__in_ready_check()
+                    case "ReadyCheck":
+                        self.__in_ready_check()
 
-                case "ChampSelect":
-                    self.__output("選擇英雄中")
+                    case "ChampSelect":
+                        self.gameflow_change.emit(Gameflow.CHAMP_SELECT, {})
 
-                case "InProgress":
-                    self.__output("遊戲中")
+                    case "InProgress":
+                        self.gameflow_change.emit(Gameflow.IN_PROGRESS, {})
 
-                case "Reconnect":
-                    self.__output("重新連接中")
+                    case "Reconnect":
+                        self.gameflow_change.emit(Gameflow.RECONNECT, {})
 
-                case "PreEndOfGame":
-                    self.__output("點讚畫面")
+                    case "PreEndOfGame":
+                        self.gameflow_change.emit(Gameflow.PRE_END_OF_GAME, {})
 
-                case "EndOfGame":
-                    self.__output("結算畫面")
+                    case "EndOfGame":
+                        self.gameflow_change.emit(Gameflow.END_OF_GAME, {})
 
-                case _:
-                    self.__output(f"未知gameflow狀態:{gameflow}")
+                    case _:
+                        raise Exception(f"未知gameflow狀態:{gameflow}")
+            except Exception as e:
+                self.gameflow_change.emit(Gameflow.UNKNOWN, {"error": str(e)})
+
             time.sleep(0.5)
         else:
             logger.info("停止程序")
@@ -76,14 +83,14 @@ class MatchManager:
         search_state = mchmking_info.get("searchState")
         match search_state:
             case None:
-                self.__output("未在列隊")
+                self.gameflow_change.emit(Gameflow.LOBBY, {})
 
             case "Error":
                 if ptr := mchmking_info["penaltyTimeRemaining"] > 0:
                     self.__is_on_penalty_flag = True
-                    self.__output(f"懲罰時間剩餘{ptr}")
+                    self.gameflow_change.emit(Gameflow.PENALTY, {"timeRemaining": ptr})
                 else:
-                    self.__output("matchmaking未知錯誤")
+                    raise Exception("matchmaking未知錯誤")
 
     def __in_matchmaking(self) -> None:
         mchmking_info: dict = self.__client.get_matchmaking_info()
@@ -101,8 +108,9 @@ class MatchManager:
                 # estimated_time = 5
                 etM, etS = divmod(estimated_time, 60)
 
-                self.__output(
-                    f"列隊中：{tiqM:02d}:{tiqS:02d}\n預計時間：{etM:02d}:{etS:02d}"
+                self.gameflow_change.emit(
+                    Gameflow.MATCHMAKING,
+                    {"timeInQueue": time_in_queue, "estimatedTime": estimated_time},
                 )
 
                 if self.__auto_rematch and time_in_queue > estimated_time:
@@ -113,7 +121,7 @@ class MatchManager:
                     logger.info("重新列隊")
 
             case _:
-                self.__output(f"未知matchmaking狀態:{search_state}")
+                raise Exception(f"未知matchmaking狀態:{search_state}")
 
     def __in_ready_check(self) -> None:
         mchmking_info: dict = self.__client.get_matchmaking_info()
@@ -138,20 +146,23 @@ class MatchManager:
                 for pass_time in ready_check_timer(self.__accept_delay):
                     if self.__is_playerResponsed():
                         break
-                    self.__output(f"等待接受對戰 {pass_time}/{self.__accept_delay}")
+                    self.gameflow_change.emit(
+                        Gameflow.WAITING_ACCEPT,
+                        {"pass_time": pass_time, "accept_delay": self.__accept_delay},
+                    )
                     time.sleep(0.5)
                 else:
                     if not self.__is_playerResponsed():
                         self.__client.accept_match()
 
             case "Declined":
-                self.__output("已拒絕對戰")
+                self.gameflow_change.emit(Gameflow.DECLINED, {})
 
             case "Accepted":
-                self.__output("已接受對戰")
+                self.gameflow_change.emit(Gameflow.ACCEPTED, {})
 
             case _:
-                self.__output(f"playerResponse未知狀態:{playerResponse}")
+                raise Exception(f"未知playerResponse狀態:{playerResponse}")
 
     def start_main(self) -> None:
         self.__main_flag.clear()
@@ -185,8 +196,3 @@ class MatchManager:
 
     def set_auto_rematch(self, status: bool) -> None:
         self.__auto_rematch = status
-
-
-if __name__ == "__main__":
-    lol_audit = MatchManager(logger.info)
-    lol_audit.start_main()

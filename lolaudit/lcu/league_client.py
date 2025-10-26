@@ -16,12 +16,6 @@ class LeagueClient:
         self.__client.verify = False
         self.__client.headers.update({"Accept": "application/json"})
 
-    def check_auth(self) -> bool:
-        return self.__auth is not None
-
-    def refresh_auth(self) -> None:
-        self.__auth = auth.get_auth_string()
-
     def __get_request(self, url: str) -> dict:
         try:
             return self.__client.get(f"{self.__auth}/{url}", timeout=(3, 10)).json()
@@ -40,6 +34,12 @@ class LeagueClient:
             self.__client.delete(f"{self.__auth}/{url}", timeout=(3, 10))
         except requests.exceptions.ConnectionError as e:
             logger.error(e)
+
+    def check_auth(self) -> bool:
+        return self.__auth is not None
+
+    def refresh_auth(self) -> None:
+        self.__auth = auth.get_auth_string()
 
     def get_gameflow(self) -> dict:
         """
