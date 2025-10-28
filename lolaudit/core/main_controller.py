@@ -19,29 +19,6 @@ class MainController(QObject):
         self.work_thread.started.connect(self.match_manager.start_main)
         self.work_thread.start()
 
-    def start_matchmaking(self):
-        self.match_manager.start_matchmaking()
-
-    def stop_matchmaking(self):
-        self.match_manager.stop_matchmaking()
-
-    def set_accept_delay(self, value: int):
-        self.match_manager.set_accept_delay(value)
-        self.config.set_config(ConfigKeys.ACCEPT_DELAY, value)
-
-    def set_auto_accept(self, value: bool):
-        self.match_manager.set_auto_accept(value)
-        self.config.set_config(ConfigKeys.AUTO_ACCEPT, value)
-
-    def set_auto_rematch(self, value: bool):
-        self.match_manager.set_auto_rematch(value)
-        self.config.set_config(ConfigKeys.AUTO_REMATCH, value)
-
-    def stop(self):
-        self.match_manager.stop_main()
-        self.work_thread.quit()
-        self.work_thread.wait()
-
     def __on_gameflow_change(self, gameflow: Gameflow, data: dict):
         display_text = ""
         match gameflow:
@@ -110,3 +87,26 @@ class MainController(QObject):
                 display_text = f"未知狀態 {error}"
 
         self.ui_update.emit(gameflow, display_text)
+
+    def start_matchmaking(self):
+        self.match_manager.start_matchmaking()
+
+    def stop_matchmaking(self):
+        self.match_manager.stop_matchmaking()
+
+    def set_accept_delay(self, value: int):
+        self.match_manager.set_accept_delay(value)
+        self.config.set_config(ConfigKeys.ACCEPT_DELAY, value)
+
+    def set_auto_accept(self, value: bool):
+        self.match_manager.set_auto_accept(value)
+        self.config.set_config(ConfigKeys.AUTO_ACCEPT, value)
+
+    def set_auto_rematch(self, value: bool):
+        self.match_manager.set_auto_rematch(value)
+        self.config.set_config(ConfigKeys.AUTO_REMATCH, value)
+
+    def stop(self):
+        self.match_manager.stop_main()
+        self.work_thread.quit()
+        self.work_thread.wait()

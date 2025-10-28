@@ -47,8 +47,11 @@ class LeagueClient:
                          '"ReadyCheck"', '"ChampSelect"' , '"InProgress"' ,
                          '"Reconnect"' , '"PreEndOfGame"', '"EndOfGame"' ,]
         """
+        try:
         url = "lol-gameflow/v1/gameflow-phase"
         return self.__get_request(url)
+        except requests.exceptions.MissingSchema:
+            return {}
 
     def get_matchmaking_info(self) -> dict:
         url = "lol-matchmaking/v1/search"

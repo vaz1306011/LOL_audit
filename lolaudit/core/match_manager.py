@@ -26,10 +26,7 @@ class MatchManager(QObject):
 
     def __main(self) -> None:
         while not self.__main_flag.is_set():
-            try:
-                gameflow = self.__client.get_gameflow()
-            except requests.exceptions.MissingSchema:
-                gameflow = {}
+            gameflow = self.__client.get_gameflow()
 
             try:
                 match gameflow:
