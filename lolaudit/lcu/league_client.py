@@ -48,8 +48,8 @@ class LeagueClient:
                          '"Reconnect"' , '"PreEndOfGame"', '"EndOfGame"' ,]
         """
         try:
-        url = "lol-gameflow/v1/gameflow-phase"
-        return self.__get_request(url)
+            url = "lol-gameflow/v1/gameflow-phase"
+            return self.__get_request(url)
         except requests.exceptions.MissingSchema:
             return {}
 
@@ -72,3 +72,7 @@ class LeagueClient:
     def decline_match(self) -> None:
         url = "lol-matchmaking/v1/ready-check/decline"
         self.__post_request(url)
+
+    def get_champ_select_timer(self) -> dict:
+        url = "lol-champ-select/v1/session/timer"
+        return self.__get_request(url)

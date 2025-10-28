@@ -47,7 +47,7 @@ class MatchManager(QObject):
                         self.__in_ready_check()
 
                     case "ChampSelect":
-                        self.gameflow_change.emit(Gameflow.CHAMP_SELECT, {})
+                        self.__in_champ_select()
 
                     case "InProgress":
                         self.gameflow_change.emit(Gameflow.IN_PROGRESS, {})
@@ -155,6 +155,15 @@ class MatchManager(QObject):
 
             case _:
                 raise Exception(f"未知playerResponse狀態:{playerResponse}")
+
+    def __in_champ_select(self):
+        response = self.__client.get_champ_select_timer()
+        adjustedTimeLeftInPhase = response["adjustedTimeLeftInPhase"] / 1000
+        internalNowInEpochMs = response["internalNowInEpochMs"] / 1000
+        remaining_time = (adjustedTimeLeftInPhase + internalNowInEpochMs) - time.time()
+        self.gameflow_change.emit(
+            Gameflow.CHAMP_SELECT, {"remaining_time": remaining_time}
+        )
 
     def __is_playerResponsed(self) -> bool:
         mchmking_info: dict = self.__client.get_matchmaking_info()

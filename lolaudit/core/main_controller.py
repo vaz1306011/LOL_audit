@@ -70,7 +70,8 @@ class MainController(QObject):
                 display_text = "已拒絕對戰"
 
             case Gameflow.CHAMP_SELECT:
-                display_text = "選擇英雄中"
+                remaining_time = int(data["remaining_time"])
+                display_text = f"選擇英雄中 - {remaining_time}"
 
             case Gameflow.IN_PROGRESS:
                 display_text = "遊戲中"
