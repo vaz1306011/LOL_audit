@@ -3,6 +3,7 @@ import logging
 import requests
 import urllib3
 
+from lolaudit.exceptions.summoner_exceptions import SummonerInfoError
 from lolaudit.lcu import auth
 
 urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
@@ -23,21 +24,21 @@ class LeagueClient:
     def __get_request(self, url: str) -> dict:
         try:
             return self.__client.get(f"{self.__auth}/{url}", timeout=(3, 10)).json()
-        except requests.exceptions.ConnectionError as e:
-            logger.error(e)
+        except requests.exceptions.ConnectionError:
+            logger.warning(f"get request失敗: {url}")
             return {}
 
     def __post_request(self, url: str) -> None:
         try:
             self.__client.post(f"{self.__auth}/{url}", timeout=(3, 10))
-        except requests.exceptions.ConnectionError as e:
-            logger.error(e)
+        except requests.exceptions.ConnectionError:
+            logger.warning(f"post request失敗: {url}")
 
     def __delete_request(self, url: str) -> None:
         try:
             self.__client.delete(f"{self.__auth}/{url}", timeout=(3, 10))
-        except requests.exceptions.ConnectionError as e:
-            logger.error(e)
+        except requests.exceptions.ConnectionError:
+            logger.warning(f"delete request失敗: {url}")
 
     def check_auth(self) -> bool:
         return self.__auth is not None
@@ -63,6 +64,7 @@ class LeagueClient:
             url = "lol-gameflow/v1/gameflow-phase"
             return self.__get_request(url)
         except requests.exceptions.MissingSchema:
+            logger.warning("無法獲取遊戲流程")
             return {}
 
     def get_matchmaking_info(self) -> dict:

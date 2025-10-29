@@ -1,8 +1,12 @@
+import logging
+
 from PySide6.QtCore import QObject, QThread, Signal
 
 from lolaudit.config import ConfigKeys, ConfigManager
 from lolaudit.core.gameflow import Gameflow
 from lolaudit.core.match_manager import MatchManager
+
+logger = logging.Logger(__name__)
 
 
 class MainController(QObject):
@@ -92,6 +96,7 @@ class MainController(QObject):
                     display_text = f"未知狀態獲取失敗: {e}\ndata:{data}"
 
                 display_text = f"未知狀態 {error}"
+                logger.error(display_text)
 
         self.ui_update.emit(gameflow, display_text)
 

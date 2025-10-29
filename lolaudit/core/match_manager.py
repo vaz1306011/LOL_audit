@@ -99,6 +99,7 @@ class MatchManager(QObject):
     def __in_lobby(self) -> None:
         mchmking_info: dict = self.__client.get_matchmaking_info()
         search_state = mchmking_info.get("searchState")
+        logger.info(type(search_state))
         match search_state:
             case None:
                 self.gameflow_change.emit(Gameflow.LOBBY, {})
@@ -113,6 +114,7 @@ class MatchManager(QObject):
     def __in_matchmaking(self) -> None:
         mchmking_info: dict = self.__client.get_matchmaking_info()
         search_state = mchmking_info.get("searchState")
+        logger.info(f"search_state: {search_state}")
         match search_state:
             case "None":
                 if self.__auto_start_match and self.__is_on_penalty_flag:
