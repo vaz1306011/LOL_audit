@@ -2,10 +2,10 @@ import logging
 import threading
 import time
 
-import requests
 from PySide6.QtCore import QObject, Signal
 
 from lolaudit.core.gameflow import Gameflow
+from lolaudit.exceptions.summoner_exceptions import SummonerInfoError
 from lolaudit.lcu import LeagueClient
 
 logger = logging.getLogger(__name__)
@@ -24,15 +24,41 @@ class MatchManager(QObject):
         self.__main_flag = threading.Event()
         self.__is_on_penalty_flag = False
 
-    def __main(self) -> None:
-        while not self.__main_flag.is_set():
-            gameflow = self.__client.get_gameflow()
+    def __wait_for_auth(self):
+        logger.info("等待授權...")
+        self.gameflow_change.emit(Gameflow.LOADING, {})
+        while not self.__client.check_auth():
+            self.__client.refresh_auth()
+            continue
+        logger.info("授權成功")
 
+    def __wait_for_sunmmoner_info(self):
+        logger.info(f"嘗試獲取召喚師狀態")
+        while True:
             try:
+                self.__client.load_summoner_info()
+            except SummonerInfoError:
+                pass
+            except Exception as e:
+                logger.warning(f"無法獲取召喚師狀態: {e}")
+            else:
+                break
+        logger.info(
+            f"召喚師狀態獲取成功\n  {self.__client.puuid}\n  {self.__client.gameName}#{self.__client.gameTag}"
+        )
+
+    def __main(self) -> None:
+        self.__wait_for_auth()
+        self.__wait_for_sunmmoner_info()
+
+        while not self.__main_flag.is_set():
+
+            gameflow = self.__client.get_gameflow()
+            try:
+                logger.info(f"gameflow: {gameflow}")
                 match gameflow:
                     case {}:
-                        self.gameflow_change.emit(Gameflow.LOADING, {})
-                        self.__client.refresh_auth()
+                        self.__wait_for_auth()
 
                     case "None":
                         self.gameflow_change.emit(Gameflow.NONE, {})

@@ -15,6 +15,10 @@ class LeagueClient:
         self.__client = requests.Session()
         self.__client.verify = False
         self.__client.headers.update({"Accept": "application/json"})
+        self.me = None
+        self.puuid = None
+        self.gameName = None
+        self.gameTag = None
 
     def __get_request(self, url: str) -> dict:
         try:
@@ -40,6 +44,14 @@ class LeagueClient:
 
     def refresh_auth(self) -> None:
         self.__auth = auth.get_auth_string()
+
+    def load_summoner_info(self) -> None:
+        self.me = self.__get_request("lol-chat/v1/me")
+        self.puuid = self.me.get("puuid")
+        self.gameName = self.me.get("gameName")
+        self.gameTag = self.me.get("gameTag")
+        if not (self.puuid and self.gameName and self.gameTag):
+            raise SummonerInfoError
 
     def get_gameflow(self) -> dict:
         """
