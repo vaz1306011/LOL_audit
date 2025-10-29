@@ -9,7 +9,6 @@ LCU_TOKEN_KEY = "--remoting-auth-token="
 PORT_REGEX = re.compile(r"--app-port=(\d+)")
 TOKEN_REGEX = re.compile(r"--remoting-auth-token=(\S+)")
 LEAGUE_PROCESSES = {"LeagueClientUx.exe", "LeagueClientUx"}
-RIOT_PROCESSES = {"Riot Client.exe", "Riot Client"}
 
 
 def get_auth_string() -> Optional[str]:
@@ -18,8 +17,6 @@ def get_auth_string() -> Optional[str]:
         name, cmdline = proc.info["name"], proc.info["cmdline"]
 
         if name in LEAGUE_PROCESSES:
-            stdout = " ".join(cmdline)
-        elif name in RIOT_PROCESSES and PORT_REGEX.search(str(cmdline)):
             stdout = " ".join(cmdline)
 
     port_match = PORT_REGEX.search(stdout)
@@ -36,3 +33,7 @@ def get_auth_string() -> Optional[str]:
         return None
 
     return f"https://riot:{token}@127.0.0.1:{port}"
+
+
+if __name__ == "__main__":
+    print(get_auth_string())
