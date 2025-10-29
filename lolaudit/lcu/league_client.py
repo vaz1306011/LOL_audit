@@ -1,53 +1,39 @@
 import logging
+from typing import Optional
 
 import requests
 import urllib3
 
 from lolaudit.exceptions.summoner_exceptions import SummonerInfoError
 from lolaudit.lcu import auth
+from lolaudit.utils.base_requester import BaseRequester
 
 urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 logger = logging.getLogger(__name__)
 
 
-class LeagueClient:
+class LeagueClient(BaseRequester):
     def __init__(self):
         self.__auth = auth.get_auth_string()
-        self.__client = requests.Session()
-        self.__client.verify = False
-        self.__client.headers.update({"Accept": "application/json"})
+        super().__init__(self.__auth)
+
         self.me = None
         self.puuid = None
         self.gameName = None
         self.gameTag = None
 
-    def __get_request(self, url: str) -> dict:
-        try:
-            return self.__client.get(f"{self.__auth}/{url}", timeout=(3, 10)).json()
-        except requests.exceptions.ConnectionError:
-            logger.warning(f"get request失敗: {url}")
-            return {}
-
-    def __post_request(self, url: str) -> None:
-        try:
-            self.__client.post(f"{self.__auth}/{url}", timeout=(3, 10))
-        except requests.exceptions.ConnectionError:
-            logger.warning(f"post request失敗: {url}")
-
-    def __delete_request(self, url: str) -> None:
-        try:
-            self.__client.delete(f"{self.__auth}/{url}", timeout=(3, 10))
-        except requests.exceptions.ConnectionError:
-            logger.warning(f"delete request失敗: {url}")
+    def get_auth(self) -> Optional[str]:
+        return self.__auth
 
     def check_auth(self) -> bool:
         return self.__auth is not None
 
     def refresh_auth(self) -> None:
         self.__auth = auth.get_auth_string()
+        super().__init__(self.__auth)
 
     def load_summoner_info(self) -> None:
-        self.me = self.__get_request("lol-chat/v1/me")
+        self.me = self._get("lol-chat/v1/me")
         self.puuid = self.me.get("puuid")
         self.gameName = self.me.get("gameName")
         self.gameTag = self.me.get("gameTag")
@@ -62,31 +48,27 @@ class LeagueClient:
         """
         try:
             url = "lol-gameflow/v1/gameflow-phase"
-            return self.__get_request(url)
+            return self._get(url)
         except requests.exceptions.MissingSchema:
             logger.warning("無法獲取遊戲流程")
             return {}
 
     def get_matchmaking_info(self) -> dict:
         url = "lol-matchmaking/v1/search"
-        return self.__get_request(url)
+        return self._get(url)
 
     def start_matchmaking(self) -> None:
         url = "lol-lobby/v2/lobby/matchmaking/search"
-        self.__post_request(url)
+        self._post(url)
 
     def quit_matchmaking(self) -> None:
         url = "lol-lobby/v2/lobby/matchmaking/search"
-        self.__delete_request(url)
+        self._delete(url)
 
     def accept_match(self) -> None:
         url = "lol-matchmaking/v1/ready-check/accept"
-        self.__post_request(url)
+        self._post(url)
 
     def decline_match(self) -> None:
         url = "lol-matchmaking/v1/ready-check/decline"
-        self.__post_request(url)
-
-    def get_champ_select_timer(self) -> dict:
-        url = "lol-champ-select/v1/session/timer"
-        return self.__get_request(url)
+        self._post(url)

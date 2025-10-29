@@ -7,6 +7,7 @@ class Gameflow(Enum):
     LOBBY = auto()
     PENALTY = auto()
     MATCHMAKING = auto()
+    READY_CHECK = auto()
     WAITING_ACCEPT = auto()
     DECLINED = auto()
     ACCEPTED = auto()

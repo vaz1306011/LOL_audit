@@ -5,8 +5,8 @@ from PySide6.QtGui import QDesktopServices, QIcon
 from PySide6.QtWidgets import QApplication, QMainWindow, QMessageBox
 
 from lolaudit.config import ConfigKeys
-from lolaudit.core.gameflow import Gameflow
 from lolaudit.core.main_controller import MainController
+from lolaudit.models import Gameflow
 from lolaudit.ui import Tray, Ui_MainWindow
 from lolaudit.utils import resource_path
 from lolaudit.utils.update_checker import check_update
@@ -19,13 +19,16 @@ class LolAuditUi(QMainWindow, Ui_MainWindow):
         super().__init__()
         self.setupUi(self)
         self.setWindowTitle(f"LOL Audit {version}")
-        self.icon = QIcon(resource_path("./lol_audit.ico"))
-        self.setWindowIcon(self.icon)
+        self.__icon = QIcon(resource_path("./lol_audit.ico"))
+        self.setWindowIcon(self.__icon)
         self.setFixedSize(self.size())
         self.setWindowFlag(Qt.WindowType.WindowStaysOnTopHint, True)
 
-        self.controller = MainController()
-        self.controller.ui_update.connect(self.__on_ui_update)
+        logger.info("初始化主控制器")
+        self.__main_controller = MainController()
+        self.__main_controller.ui_update.connect(self.__on_ui_update)
+        logger.info("主控制器初始化完成")
+
         self.__init_ui()
         logger.info("UI 初始化完成")
 
@@ -34,9 +37,11 @@ class LolAuditUi(QMainWindow, Ui_MainWindow):
         self.gameflow: Gameflow
 
     def __init_ui(self):
-        cfg = self.controller.config
+        cfg = self.__main_controller.config
         self.accept_delay_value.setText(str(cfg.get_config(ConfigKeys.ACCEPT_DELAY)))
-        self.accept_delay_value.textChanged.connect(self.controller.set_accept_delay)
+        self.accept_delay_value.textChanged.connect(
+            self.__main_controller.set_accept_delay
+        )
 
         self.match_button.clicked.connect(self.__on_match_button_click)
 
@@ -49,12 +54,12 @@ class LolAuditUi(QMainWindow, Ui_MainWindow):
             (
                 ConfigKeys.AUTO_ACCEPT,
                 self.auto_accept_status,
-                self.controller.set_auto_accept,
+                self.__main_controller.set_auto_accept,
             ),
             (
                 ConfigKeys.AUTO_REMATCH,
                 self.auto_rematch_status,
-                self.controller.set_auto_rematch,
+                self.__main_controller.set_auto_rematch,
             ),
         ]:
             status = bool(cfg.get_config(key))
@@ -64,7 +69,7 @@ class LolAuditUi(QMainWindow, Ui_MainWindow):
             if key == ConfigKeys.ALWAYS_ON_TOP:
                 self.__set_always_on_top(status)
 
-        self.tray = Tray(self, self.icon)
+        self.tray = Tray(self, self.__icon)
         self.tray.quit_action.triggered.connect(self.__exit_app)
         self.tray.show()
 
@@ -89,14 +94,14 @@ class LolAuditUi(QMainWindow, Ui_MainWindow):
 
     def __on_match_button_click(self):
         if self.gameflow == Gameflow.LOBBY:
-            self.controller.start_matchmaking()
+            self.__main_controller.start_matchmaking()
         else:
-            self.controller.stop_matchmaking()
+            self.__main_controller.stop_matchmaking()
 
     def __set_always_on_top(self, status: bool):
         self.setWindowFlag(Qt.WindowType.WindowStaysOnTopHint, status)
         self.show()
-        self.controller.config.set_config(ConfigKeys.ALWAYS_ON_TOP, status)
+        self.__main_controller.config.set_config(ConfigKeys.ALWAYS_ON_TOP, status)
 
     def __check_update(self, version):
         result = check_update(version)
@@ -122,7 +127,7 @@ class LolAuditUi(QMainWindow, Ui_MainWindow):
             QDesktopServices.openUrl(QUrl(url))
 
     def __exit_app(self):
-        self.controller.stop()
+        self.__main_controller.stop()
         QApplication.quit()
 
     def closeEvent(self, event):
