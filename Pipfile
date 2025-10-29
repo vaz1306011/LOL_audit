@@ -13,6 +13,8 @@ psutil = "*"
 pyside6 = "*"
 
 [dev-packages]
+ipykernel = "*"
+pyinstaller = "*"
 
 [requires]
 python_version = "3.10"
