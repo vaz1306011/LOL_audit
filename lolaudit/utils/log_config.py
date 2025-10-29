@@ -12,10 +12,10 @@ class TraceStyleFormatter(logging.Formatter):
 
         if record.levelno >= logging.ERROR:
             stack = "".join(traceback.format_stack()[:-1])
-            return f"{header}\n{stack}    {message}"
+            return f"{header}\n{stack}    {message}\n"
         else:
             location = f"{record.pathname}:{record.lineno}"
-            return f"{header} {location}\n  {message}"
+            return f"{header} {location}\n  {message}\n"
 
 
 def setup_logging():
