@@ -9,7 +9,7 @@ from lolaudit.lcu.league_client import LeagueClient
 from lolaudit.lcu.match_manager import MatchManager
 from lolaudit.models import Gameflow
 
-logger = logging.Logger(__name__)
+logger = logging.getLogger(__name__)
 
 
 class MainController(QObject):
@@ -30,7 +30,6 @@ class MainController(QObject):
         self.__work_thread.start()
 
     def __on_gameflow_change(self, gameflow: Gameflow):
-        logger.info(f"Gameflow 更新: {gameflow}")
         display_text = None
         match gameflow:
             case Gameflow.LOADING:
@@ -46,8 +45,6 @@ class MainController(QObject):
                     display_text = "未在列隊中"
                 elif penalty_time > 0:
                     display_text = f"懲罰中，剩餘時間：{minute}:{second}"
-                else:
-                    display_text = "未知懲罰狀態"
 
             case Gameflow.MATCHMAKING:
                 data = self.__match_manager.in_matchmaking()
@@ -65,18 +62,21 @@ class MainController(QObject):
                 )
 
             case Gameflow.READY_CHECK:
-                if rtn := self.__match_manager.in_ready_check():
-                    gf, data = rtn
-                    if gf == Gameflow.WAITING_ACCEPT:
+                state, data = self.__match_manager.in_ready_check()
+                match state:
+                    case MatchmakingState.NONE:
+                        display_text = "等待接受"
+
+                    case MatchmakingState.WAITING_ACCEPT:
                         pass_time = data["pass_time"]
                         accept_delay = data["accept_delay"]
                         display_text = f"等待接受對戰 {pass_time}/{accept_delay}"
-                    elif gf == Gameflow.ACCEPTED:
+
+                    case MatchmakingState.ACCEPTED:
                         display_text = "已接受對戰"
-                    elif gf == Gameflow.DECLINED:
+
+                    case MatchmakingState.DECLINED:
                         display_text = "已拒絕對戰"
-                else:
-                    display_text = "等待接受"
 
             case Gameflow.CHAMP_SELECT:
                 remaining_time = (
@@ -99,8 +99,6 @@ class MainController(QObject):
             case Gameflow.UNKNOWN:
                 display_text = "未知狀態"
 
-        logger.info(f"Gameflow 更新: {gameflow}")
-        logger.info(f"UI 更新: {display_text}")
         if not display_text:
             return
 
