@@ -1,37 +1,34 @@
 import json
-import platform
+import logging
 from pathlib import Path
 
 from appdirs import user_config_dir
 from PySide6.QtCore import QObject
 
-from lolaudit.config.config_keys import ConfigKeys
-from lolaudit.config.config_model import Config
-from lolaudit.utils import resource_path
+from lolaudit.models import Config
+
+from . import ConfigKeys
+
+logger = logging.getLogger(__name__)
 
 
 class ConfigManager(QObject):
     def __init__(self) -> None:
         self.__setting_path = self.get_config_path()
+        logger.info(f"Config路徑: {self.__setting_path}")
         self.setting = Config()
         self.load_config()
 
     def get_config_path(self) -> str:
-        match platform.system():
-            case "Windows":
-                path = Path(user_config_dir("LOL_Audit"), "config.json")
-                return str(path)
-            case "Darwin":
-                return resource_path("./config")
-            case _:
-                raise NotImplementedError("Unsupported platform")
+        path = Path(user_config_dir("LOL_Audit"), "config.json")
+        return str(path)
 
     def load_config(self) -> None:
         try:
             with open(self.__setting_path, "r", encoding="utf-8") as f:
                 data = json.load(f)
                 self.setting = Config(**data)
-        except (FileNotFoundError, json.JSONDecodeError):
+        except (FileNotFoundError, json.JSONDecodeError, TypeError):
             self.save_config()
 
     def save_config(self) -> None:
