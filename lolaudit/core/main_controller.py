@@ -1,5 +1,6 @@
 import logging
 
+from appdirs import user_config_dir
 from PySide6.QtCore import QObject, QThread, Signal
 
 from lolaudit.config import ConfigKeys, ConfigManager
@@ -15,7 +16,7 @@ class MainController(QObject):
 
     def __init__(self):
         super().__init__()
-        self.config = ConfigManager("./config.json")
+        self.config = ConfigManager()
         self.__client = LeagueClient()
         self.__gameflow_manager = GameflowManager(self.__client)
         self.__gameflow_manager.gameflow_change.connect(self.__on_gameflow_change)

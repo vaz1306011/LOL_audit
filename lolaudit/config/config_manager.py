@@ -1,16 +1,31 @@
 import json
+import platform
+import sys
+from pathlib import Path
 
+from appdirs import user_config_dir
 from PySide6.QtCore import QObject
 
 from lolaudit.config.config_keys import ConfigKeys
 from lolaudit.config.config_model import Config
+from lolaudit.utils import resource_path
 
 
 class ConfigManager(QObject):
-    def __init__(self, config_path: str) -> None:
-        self.__setting_path = config_path
+    def __init__(self) -> None:
+        self.__setting_path = self.get_config_path()
         self.setting = Config()
         self.load_config()
+
+    def get_config_path(self) -> str:
+        match platform.system():
+            case "Windows":
+                path = Path(user_config_dir("LOL_Audit"), "config.json")
+                return str(path)
+            case "Darwin":
+                return resource_path("./config")
+            case _:
+                raise NotImplementedError("Unsupported platform")
 
     def load_config(self) -> None:
         try:

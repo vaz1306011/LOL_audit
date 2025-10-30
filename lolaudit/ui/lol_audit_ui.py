@@ -1,4 +1,5 @@
 import logging
+import platform
 
 from PySide6.QtCore import Qt, QUrl
 from PySide6.QtGui import QDesktopServices, QIcon
@@ -18,7 +19,10 @@ class LolAuditUi(QMainWindow, Ui_MainWindow):
         super().__init__()
         self.setupUi(self)
         self.setWindowTitle(f"LOL Audit {version}")
-        self.__icon = QIcon(resource_path("./lol_audit.ico"))
+        icon_path = (
+            "./lol_audit.icns" if platform.system() == "Darwin" else "./lol_audit.ico"
+        )
+        self.__icon = QIcon(resource_path(icon_path))
         self.setWindowIcon(self.__icon)
         self.setFixedSize(self.size())
         self.setWindowFlag(Qt.WindowType.WindowStaysOnTopHint, True)

@@ -8,6 +8,7 @@ requests = "*"
 urllib3 = "*"
 psutil = "*"
 pyside6 = "*"
+appdirs = "*"
 
 [dev-packages]
 ipykernel = "*"
