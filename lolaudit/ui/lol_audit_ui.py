@@ -5,11 +5,10 @@ from PySide6.QtGui import QDesktopServices, QIcon
 from PySide6.QtWidgets import QApplication, QMainWindow, QMessageBox
 
 from lolaudit.config import ConfigKeys
-from lolaudit.core.main_controller import MainController
+from lolaudit.core import MainController
 from lolaudit.models import Gameflow
 from lolaudit.ui import Tray, Ui_MainWindow
-from lolaudit.utils import resource_path
-from lolaudit.utils.update_checker import check_update
+from lolaudit.utils import check_update, resource_path
 
 logger = logging.getLogger(__name__)
 

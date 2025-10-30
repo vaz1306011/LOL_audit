@@ -1,5 +1,4 @@
 import logging
-from typing import Optional
 
 from PySide6.QtCore import QObject, Signal
 
@@ -8,8 +7,8 @@ from lolaudit.exceptions import (
     UnknownPlayerResponseError,
     UnknownSearchStateError,
 )
-from lolaudit.lcu.league_client import LeagueClient
-from lolaudit.models import Gameflow
+from lolaudit.lcu import LeagueClient
+from lolaudit.models import Gameflow, MatchmakingState
 
 logger = logging.getLogger(__name__)
 
@@ -25,18 +24,20 @@ class MatchManager(QObject):
         self.__auto_accept = True
         self.__auto_rematch = True
         self.__auto_start_match = True
-        self.__is_on_penalty_flag = False
+        self.__is_on_penalty = False
 
     def in_lobby(self) -> int:
         mchmking_info: dict = self.__client.get_matchmaking_info()
         search_state = mchmking_info.get("searchState")
         match search_state:
             case None:
+                if self.__is_on_penalty:
+                    self.__is_on_penalty = False
+                    self.__client.start_matchmaking()
                 return 0
-
             case "Error":
                 if (ptr := mchmking_info["penaltyTimeRemaining"]) > 0:
-                    self.__is_on_penalty_flag = True
+                    self.__is_on_penalty = True
                     return ptr
                 else:
                     raise UnknownMatchmakingInfoError(mchmking_info)
@@ -49,9 +50,9 @@ class MatchManager(QObject):
         logger.info(f"search_state: {search_state}")
         match search_state:
             case "None":
-                if self.__auto_start_match and self.__is_on_penalty_flag:
+                if self.__auto_start_match and self.__is_on_penalty:
                     self.__client.start_matchmaking()
-                    self.__is_on_penalty_flag = False
+                    self.__is_on_penalty = False
                 return {}
 
             case "Searching":
@@ -73,40 +74,40 @@ class MatchManager(QObject):
             case _:
                 raise UnknownSearchStateError(search_state)
 
-    def in_ready_check(self) -> Optional[tuple[Gameflow, dict]]:
+    def in_ready_check(self) -> tuple[MatchmakingState, dict]:
         mchmking_info: dict = self.__client.get_matchmaking_info()
         playerResponse = mchmking_info.get("readyCheck", {}).get("playerResponse")
         match playerResponse:
             case "None":
                 if not self.__auto_accept:
-                    return
+                    return MatchmakingState.NONE, {}
 
                 ready_check_data = self.__client.get_matchmaking_info()["readyCheck"]
                 if ready_check_data["state"] != "InProgress":
-                    return
+                    return MatchmakingState.NONE, {}
                 pass_time = round(ready_check_data["timer"])
 
-                def __is_playerResponsed() -> bool:
+                def is_playerResponsed() -> bool:
                     mchmking_info: dict = self.__client.get_matchmaking_info()
                     playerResponse = mchmking_info.get("readyCheck", {}).get(
                         "playerResponse"
                     )
                     return playerResponse in ("Accepted", "Declined")
 
-                if not __is_playerResponsed() and pass_time >= self.__accept_delay:
+                if not is_playerResponsed() and pass_time >= self.__accept_delay:
                     self.__client.accept_match()
-                    return (Gameflow.ACCEPTED, {})
+                    return (MatchmakingState.ACCEPTED, {})
 
                 return (
-                    Gameflow.WAITING_ACCEPT,
+                    MatchmakingState.WAITING_ACCEPT,
                     {"pass_time": pass_time, "accept_delay": self.__accept_delay},
                 )
 
             case "Accepted":
-                return (Gameflow.ACCEPTED, {})
+                return (MatchmakingState.ACCEPTED, {})
 
             case "Declined":
-                return (Gameflow.DECLINED, {})
+                return (MatchmakingState.DECLINED, {})
 
             case _:
                 raise UnknownPlayerResponseError(playerResponse)

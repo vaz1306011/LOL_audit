@@ -6,7 +6,7 @@ import urllib3
 
 from lolaudit.exceptions import SummonerInfoError
 from lolaudit.lcu import auth
-from lolaudit.utils.base_requester import BaseRequester
+from lolaudit.utils import BaseRequester
 
 urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 logger = logging.getLogger(__name__)

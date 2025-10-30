@@ -5,7 +5,7 @@ import time
 from PySide6.QtCore import QObject, Signal
 
 from lolaudit.exceptions import SummonerInfoError, UnknownGameflowStateError
-from lolaudit.lcu.league_client import LeagueClient
+from lolaudit.lcu import LeagueClient
 from lolaudit.models import Gameflow
 
 logger = logging.getLogger(__name__)

@@ -3,11 +3,9 @@ import logging
 from PySide6.QtCore import QObject, QThread, Signal
 
 from lolaudit.config import ConfigKeys, ConfigManager
-from lolaudit.core.gameflow_manager import GameflowManager
-from lolaudit.lcu.champ_select_manager import ChampSelectManager
-from lolaudit.lcu.league_client import LeagueClient
-from lolaudit.lcu.match_manager import MatchManager
-from lolaudit.models import Gameflow
+from lolaudit.core import GameflowManager
+from lolaudit.lcu import ChampSelectManager, LeagueClient, MatchManager
+from lolaudit.models import Gameflow, MatchmakingState
 
 logger = logging.getLogger(__name__)
 
