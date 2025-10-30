@@ -35,7 +35,6 @@ class MainController(QObject):
         match gameflow:
             case Gameflow.LOADING:
                 display_text = "讀取中"
-                # self.__wait_for_init()
 
             case Gameflow.NONE:
                 display_text = "未在房間內"

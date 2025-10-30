@@ -4,7 +4,7 @@ from typing import Optional
 import requests
 import urllib3
 
-from lolaudit.exceptions.summoner_exceptions import SummonerInfoError
+from lolaudit.exceptions import SummonerInfoError
 from lolaudit.lcu import auth
 from lolaudit.utils.base_requester import BaseRequester
 
@@ -40,7 +40,7 @@ class LeagueClient(BaseRequester):
         if not (self.puuid and self.gameName and self.gameTag):
             raise SummonerInfoError
 
-    def get_gameflow(self) -> dict:
+    def get_gameflow(self) -> Optional[str]:
         """
         gameflow_list = ['"None"'      , '"Lobby"'       , '"Matchmaking"',
                          '"ReadyCheck"', '"ChampSelect"' , '"InProgress"' ,
@@ -48,10 +48,10 @@ class LeagueClient(BaseRequester):
         """
         try:
             url = "lol-gameflow/v1/gameflow-phase"
-            return self._get(url)
+            return str(self._get(url))
         except requests.exceptions.MissingSchema:
             logger.warning("無法獲取遊戲流程")
-            return {}
+            return None
 
     def get_matchmaking_info(self) -> dict:
         url = "lol-matchmaking/v1/search"

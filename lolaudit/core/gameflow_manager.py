@@ -4,7 +4,7 @@ import time
 
 from PySide6.QtCore import QObject, Signal
 
-from lolaudit.exceptions.summoner_exceptions import SummonerInfoError
+from lolaudit.exceptions import SummonerInfoError, UnknownGameflowStateError
 from lolaudit.lcu.league_client import LeagueClient
 from lolaudit.models import Gameflow
 
@@ -52,12 +52,11 @@ class GameflowManager(QObject):
     def __main(self):
         self.__wait_for_init()
         while not self.__main_flag.is_set():
-
             gameflow = self.__client.get_gameflow()
             try:
                 logger.info(f"gameflow: {gameflow}")
                 match gameflow:
-                    case {}:
+                    case None:
                         self.gameflow_change.emit(Gameflow.LOADING)
                         self.__wait_for_init()
 
@@ -89,7 +88,7 @@ class GameflowManager(QObject):
                         self.gameflow_change.emit(Gameflow.END_OF_GAME)
 
                     case _:
-                        raise Exception(f"未知gameflow狀態:{gameflow}")
+                        raise UnknownGameflowStateError(gameflow)
             except Exception as e:
                 logger.error(f"{e}")
                 self.gameflow_change.emit(Gameflow.UNKNOWN)

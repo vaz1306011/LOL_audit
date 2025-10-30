@@ -1,9 +1,13 @@
 import logging
-import pprint
 from typing import Optional
 
 from PySide6.QtCore import QObject, Signal
 
+from lolaudit.exceptions import (
+    UnknownMatchmakingInfoError,
+    UnknownPlayerResponseError,
+    UnknownSearchStateError,
+)
 from lolaudit.lcu.league_client import LeagueClient
 from lolaudit.models import Gameflow
 
@@ -35,11 +39,9 @@ class MatchManager(QObject):
                     self.__is_on_penalty_flag = True
                     return ptr
                 else:
-                    raise Exception(
-                        f"matchmaking未知錯誤\n{pprint.pformat(mchmking_info)}"
-                    )
+                    raise UnknownMatchmakingInfoError(mchmking_info)
             case _:
-                raise Exception(f"未知matchmaking狀態:{search_state}")
+                raise UnknownSearchStateError(search_state)
 
     def in_matchmaking(self) -> dict:
         mchmking_info: dict = self.__client.get_matchmaking_info()
@@ -54,10 +56,8 @@ class MatchManager(QObject):
 
             case "Searching":
                 time_in_queue = round(mchmking_info["timeInQueue"])
-                tiqM, tiqS = divmod(time_in_queue, 60)
                 estimated_time = round(mchmking_info["estimatedQueueTime"])
                 # estimated_time = 5
-                etM, etS = divmod(estimated_time, 60)
 
                 if self.__auto_rematch and time_in_queue > estimated_time:
                     logger.info("等待時間過長")
@@ -71,7 +71,7 @@ class MatchManager(QObject):
                 return {"timeInQueue": time_in_queue, "estimatedTime": estimated_time}
 
             case _:
-                raise Exception(f"未知matchmaking狀態:{search_state}")
+                raise UnknownSearchStateError(search_state)
 
     def in_ready_check(self) -> Optional[tuple[Gameflow, dict]]:
         mchmking_info: dict = self.__client.get_matchmaking_info()
@@ -109,7 +109,7 @@ class MatchManager(QObject):
                 return (Gameflow.DECLINED, {})
 
             case _:
-                raise Exception(f"未知playerResponse狀態:{playerResponse}")
+                raise UnknownPlayerResponseError(playerResponse)
 
     def start_matchmaking(self) -> None:
         self.__client.start_matchmaking()
