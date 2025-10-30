@@ -9,7 +9,7 @@ a = Analysis(  # type: ignore
     ["lol_audit.pyw"],
     pathex=[],
     binaries=[],
-    datas=[("lol_audit.ico", ".")],
+    datas=[("lol_audit.icns", ".")],
     hiddenimports=[],
     hookspath=[],
     hooksconfig={},
@@ -39,11 +39,11 @@ exe = EXE(  # type: ignore
     target_arch=None,
     codesign_identity=None,
     entitlements_file=None,
-    icon=["lol_audit.ico"],
+    icon="lol_audit.icns",
 )
 app = BUNDLE(  # type: ignore
     exe,
-    name="lol_audit.app",
-    icon=None,
+    name=f"lol_audit_{__version__}.app",
+    icon="lol_audit.icns",
     bundle_identifier=None,
 )
