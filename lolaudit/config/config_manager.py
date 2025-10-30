@@ -1,6 +1,5 @@
 import json
 import platform
-import sys
 from pathlib import Path
 
 from appdirs import user_config_dir
@@ -36,6 +35,7 @@ class ConfigManager(QObject):
             self.save_config()
 
     def save_config(self) -> None:
+        Path(self.__setting_path).parent.mkdir(parents=True, exist_ok=True)
         with open(self.__setting_path, "w", encoding="utf-8") as f:
             json.dump(self.setting.__dict__, f, ensure_ascii=False, indent=2)
 
