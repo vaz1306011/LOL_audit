@@ -24,23 +24,29 @@ class MatchManager(QObject):
         self.__auto_accept = True
         self.__auto_rematch = True
         self.__auto_start_match = True
-        self.__is_on_penalty = False
 
     def in_lobby(self) -> int:
         mchmking_info: dict = self.__client.get_matchmaking_info()
         search_state = mchmking_info.get("searchState")
         match search_state:
             case None:
-                if self.__is_on_penalty:
-                    self.__is_on_penalty = False
-                    self.__client.start_matchmaking()
                 return 0
             case "Error":
-                if (ptr := mchmking_info["penaltyTimeRemaining"]) > 0:
-                    self.__is_on_penalty = True
-                    return ptr
-                else:
+                try:
+                    if not mchmking_info["errors"]:
+                        ptr = 0
+                    elif mchmking_info["errors"][0]["penaltyTimeRemaining"] > 0:
+                        ptr = mchmking_info["errors"][0]["penaltyTimeRemaining"]
+                    else:
+                        raise UnknownMatchmakingInfoError(mchmking_info)
+
+                except Exception:
                     raise UnknownMatchmakingInfoError(mchmking_info)
+
+                if ptr == 0 and self.__auto_start_match:
+                    self.start_matchmaking()
+
+                return ptr
             case _:
                 raise UnknownSearchStateError(search_state)
 
@@ -50,9 +56,6 @@ class MatchManager(QObject):
         logger.info(f"search_state: {search_state}")
         match search_state:
             case "None":
-                if self.__auto_start_match and self.__is_on_penalty:
-                    self.__client.start_matchmaking()
-                    self.__is_on_penalty = False
                 return {}
 
             case "Searching":
