@@ -5,6 +5,8 @@ import sys
 sys.path.append(os.getcwd())
 from lolaudit import __version__
 
+name = f"LolAudit_{__version__}"
+
 a = Analysis(  # type: ignore
     ["lol_audit.pyw"],
     pathex=[],
@@ -26,7 +28,7 @@ exe = EXE(  # type: ignore
     a.binaries,
     a.datas,
     [],
-    name=f"lol_audit_{__version__}",
+    name=name,
     debug=False,
     bootloader_ignore_signals=False,
     strip=False,
