@@ -39,11 +39,11 @@ class MainController(QObject):
 
             case Gameflow.LOBBY:
                 penalty_time = self.__match_manager.in_lobby()
-                minute, second = divmod(penalty_time, 60)
+                minute, second = divmod(round(penalty_time), 60)
                 if penalty_time == 0:
                     display_text = "未在列隊中"
                 elif penalty_time > 0:
-                    display_text = f"懲罰中，剩餘時間：{minute}:{second}"
+                    display_text = f"懲罰中，剩餘時間：{minute}:{second:02d}"
 
             case Gameflow.MATCHMAKING:
                 data = self.__match_manager.in_matchmaking()
@@ -81,7 +81,7 @@ class MainController(QObject):
                 remaining_time = (
                     self.__champ_select_manager.get_champ_select_remaining_time()
                 )
-                display_text = f"選擇英雄中 - {int(remaining_time)}"
+                display_text = f"選擇英雄中 - {round(remaining_time)}"
 
             case Gameflow.IN_PROGRESS:
                 display_text = "遊戲中"
